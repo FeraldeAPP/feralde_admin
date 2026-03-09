@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { IconPencil, IconBox } from '@/components/Icons';
-import type { Product } from '@/api/types';
+import type { Product } from '../types';
 
 interface Props {
   product: Product;
@@ -53,9 +53,8 @@ export default function ProductRow({ product }: Props) {
         </div>
       </td>
       <td className="px-5 py-3.5 text-center">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-          product.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
           <span className={`w-1.5 h-1.5 rounded-full mr-1 ${product.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
           {product.is_active ? 'Active' : 'Inactive'}
         </span>

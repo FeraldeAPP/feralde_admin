@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRoles, getPermissions, createRole } from '@/api/endpoints';
-import type { RoleWithPermissions, Permission, CreateRolePayload } from '@/api/types';
+import { getRoles, getPermissions, createRole } from '@/features/roles/api';
+import type { RoleWithPermissions, Permission, CreateRolePayload } from '@/features/roles/types';
 
 type ModalState = { type: 'none' } | { type: 'create' };
 type ActiveTab = 'basic' | 'permissions';
@@ -425,3 +425,5 @@ function formatPermissionLabel(permission: string): string {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
+
+

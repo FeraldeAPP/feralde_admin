@@ -1,5 +1,5 @@
-import { isAxiosError } from '@/api/client';
-import { addProductMedia, createProduct, uploadFile } from '@/api/endpoints';
+import { isAxiosError } from '@/lib/api/client';
+import { addProductMedia, createProduct, uploadFile } from '../api';
 import { IconArrowLeft } from '@/components/Icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -102,3 +102,4 @@ export default function CreateProductPage(): React.ReactElement {
     </div>
   );
 }
+

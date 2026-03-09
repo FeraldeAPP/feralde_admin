@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAccountingPeriods } from '@/api/endpoints';
-import type { AccountingPeriod } from '@/api/types';
+import { getAccountingPeriods } from '@/features/accounting/api';
+import type { AccountingPeriod } from '@/features/accounting/types';
 
 export default function AccountingPage(): React.ReactElement {
   const [page, setPage] = useState(1);
@@ -97,3 +97,5 @@ export default function AccountingPage(): React.ReactElement {
     </div>
   );
 }
+
+

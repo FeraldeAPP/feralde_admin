@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAuditLogs } from '@/api/endpoints';
-import type { AuditLog } from '@/api/types';
+import { getAuditLogs } from '@/features/system/api';
+import type { AuditLog } from '@/features/system/types';
 
 export default function AuditLogsPage(): React.ReactElement {
   const [page, setPage] = useState(1);
@@ -110,3 +110,5 @@ export default function AuditLogsPage(): React.ReactElement {
     </div>
   );
 }
+
+

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOrder, updateOrderStatus } from '@/api/endpoints';
+import { getOrder, updateOrderStatus } from '@/features/orders/api';
 import { useAuth } from '@/hooks/use-auth';
-import type { OrderStatus } from '@/api/types';
+import type { OrderStatus } from '@/features/orders/types';
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -206,3 +206,5 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
     </div>
   );
 }
+
+

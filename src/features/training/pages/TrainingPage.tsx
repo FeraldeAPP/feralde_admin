@@ -9,9 +9,9 @@ import {
   updateTrainingModule,
   deleteTrainingModule,
   publishTrainingModule,
-} from '@/api/endpoints';
+} from '@/features/training/api';
 import { useAuth } from '@/hooks/use-auth';
-import type { TrainingModule } from '@/api/types';
+import type { TrainingModule } from '@/features/training/types';
 
 const schema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -394,3 +394,5 @@ export default function TrainingPage(): React.ReactElement {
     </div>
   );
 }
+
+

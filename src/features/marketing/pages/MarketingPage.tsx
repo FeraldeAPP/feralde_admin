@@ -5,8 +5,8 @@ import {
     getMarketingAssets,
     publishAnnouncement,
     updateAnnouncement,
-} from '@/api/endpoints';
-import type { Announcement, MarketingAsset } from '@/api/types';
+} from '@/features/marketing/api';
+import type { Announcement, MarketingAsset } from '@/features/marketing/types';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -499,3 +499,5 @@ export default function MarketingPage(): React.ReactElement {
     </main>
   );
 }
+
+

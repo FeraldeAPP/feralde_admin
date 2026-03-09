@@ -1,5 +1,5 @@
-import { approveReseller, getResellers } from '@/api/endpoints';
-import type { Reseller } from '@/api/types';
+import { approveReseller, getResellers } from '@/features/resellers/api';
+import type { Reseller } from '@/features/resellers/types';
 import { useAuth } from '@/hooks/use-auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -127,3 +127,5 @@ export default function ResellersPage(): React.ReactElement {
     </div>
   );
 }
+
+

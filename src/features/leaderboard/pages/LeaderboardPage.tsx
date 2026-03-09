@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { getLeaderboard } from '@/api/endpoints';
-import type { LeaderboardEntry } from '@/api/types';
+import { getLeaderboard } from '@/features/leaderboard/api';
+import type { LeaderboardEntry } from '@/features/leaderboard/types';
 
 export default function LeaderboardPage(): React.ReactElement {
   const { data, isLoading, isError } = useQuery({
@@ -92,3 +92,5 @@ export default function LeaderboardPage(): React.ReactElement {
     </div>
   );
 }
+
+

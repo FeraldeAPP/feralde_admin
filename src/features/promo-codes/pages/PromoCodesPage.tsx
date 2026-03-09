@@ -1,5 +1,5 @@
-import { createPromoCode, deletePromoCode, getPromoCodes, updatePromoCode } from '@/api/endpoints';
-import type { PromoCode, PromoCodeType } from '@/api/types';
+import { createPromoCode, deletePromoCode, getPromoCodes, updatePromoCode } from '@/features/promo-codes/api';
+import type { PromoCode, PromoCodeType } from '@/features/promo-codes/types';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -543,3 +543,5 @@ export default function PromoCodesPage(): React.ReactElement {
     </main>
   );
 }
+
+

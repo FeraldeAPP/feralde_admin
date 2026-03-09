@@ -1,5 +1,5 @@
-import { adjustInventory, getInventory } from '@/api/endpoints';
-import type { InventoryItem } from '@/api/types';
+import { adjustInventory, getInventory } from '@/features/inventory/api';
+import type { InventoryItem } from '@/features/inventory/types';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -282,3 +282,5 @@ export default function InventoryPage(): React.ReactElement {
     </div>
   );
 }
+
+

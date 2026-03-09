@@ -10,8 +10,8 @@ import {
   rejectDistributor,
   suspendDistributor,
   unsuspendDistributor,
-} from '@/api/endpoints';
-import type { Distributor, DistributorRank, NetworkReseller } from '@/api/types';
+} from '@/features/distributors/api';
+import type { Distributor, DistributorRank, NetworkReseller } from '@/features/distributors/types';
 
 const RANK_COLORS: Record<DistributorRank, string> = {
   STARTER: 'bg-gray-100 text-gray-600',
@@ -459,3 +459,5 @@ export default function DistributorDetailPage(): React.ReactElement {
     </div>
   );
 }
+
+

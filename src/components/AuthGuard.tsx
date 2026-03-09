@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/auth-store';
 
 const ADMIN_ROLES = ['admin', 'super-admin'];
@@ -15,7 +15,7 @@ export default function AuthGuard() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return null;
   }
 
   const isAdmin = user.roles.some((r) => ADMIN_ROLES.includes(r.name));

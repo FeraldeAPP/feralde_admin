@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { getSystemSettings } from '@/api/endpoints';
-import type { SystemSetting } from '@/api/types';
+import { getSystemSettings } from '@/features/system/api';
+import type { SystemSetting } from '@/features/system/types';
 
 export default function SettingsPage(): React.ReactElement {
   const { data, isLoading, isError } = useQuery({
@@ -60,3 +60,5 @@ export default function SettingsPage(): React.ReactElement {
     </div>
   );
 }
+
+

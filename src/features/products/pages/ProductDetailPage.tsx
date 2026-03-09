@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProduct } from '../hooks/use-products';
 import { useAuth } from '@/hooks/use-auth';
-import { deleteProduct } from '@/api/endpoints';
+import { deleteProduct } from '../api';
 import { IconArrowLeft, IconPencil, IconTrash, IconBox, IconTag, IconStar, IconSparkles, IconCheck } from '@/components/Icons';
-import type { ProductVariant, ProductMedia } from '@/api/types';
+import type { ProductVariant, ProductMedia } from '../types';
 
 const TIER_LABELS: Record<string, string> = {
   RETAIL: 'Retail',
@@ -34,9 +34,8 @@ function VariantCard({ variant }: { variant: ProductVariant }): React.ReactEleme
             </p>
           )}
         </div>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
-          variant.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${variant.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
           {variant.is_active ? 'Active' : 'Inactive'}
         </span>
       </div>
@@ -84,9 +83,8 @@ function ImageGallery({ media }: { media: ProductMedia[] }): React.ReactElement 
                 key={m.id}
                 type="button"
                 onClick={() => setActive(m)}
-                className={`w-14 h-14 rounded-md overflow-hidden border-2 transition-colors ${
-                  active.id === m.id ? 'border-indigo-500' : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`w-14 h-14 rounded-md overflow-hidden border-2 transition-colors ${active.id === m.id ? 'border-indigo-500' : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <img src={m.url} alt={m.alt_text ?? ''} className="w-full h-full object-cover" />
               </button>
@@ -99,7 +97,7 @@ function ImageGallery({ media }: { media: ProductMedia[] }): React.ReactElement 
 }
 
 export default function ProductDetailPage(): React.ReactElement {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams({ strict: false });
   const productId = Number(id);
   const { data, isLoading, isError } = useProduct(productId);
   const { hasPermission } = useAuth();
@@ -119,7 +117,7 @@ export default function ProductDetailPage(): React.ReactElement {
       const res = await deleteProduct(productId);
       if (res.success) {
         await queryClient.invalidateQueries({ queryKey: ['products'] });
-        navigate('/products');
+        navigate({ to: '/products' });
       } else {
         setDeleteError(res.message);
       }
@@ -195,7 +193,8 @@ export default function ProductDetailPage(): React.ReactElement {
         <div className="flex items-center gap-2 shrink-0">
           {canUpdate && (
             <Link
-              to={`/products/${product.id}/edit`}
+              to="/products/$id/edit"
+              params={{ id: product.id.toString() }}
               className="inline-flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <IconPencil className="w-4 h-4" />

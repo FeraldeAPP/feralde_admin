@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
-import { changePassword, resendVerificationEmail, resetPasswordWithToken } from '@/api/endpoints';
-import type { ChangePasswordPayload, ResetPasswordPayload } from '@/api/types';
+import { changePassword, resendVerificationEmail, resetPasswordWithToken } from '@/features/profile/api';
+import type { ChangePasswordPayload, ResetPasswordPayload } from '@/features/profile/types';
 
 export default function ProfilePage(): React.ReactElement {
   const { user } = useAuthStore();
@@ -388,3 +388,5 @@ function ResetPasswordSection(): React.ReactElement {
     </section>
   );
 }
+
+

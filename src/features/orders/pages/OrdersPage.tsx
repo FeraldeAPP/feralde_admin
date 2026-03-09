@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getOrders } from '@/api/endpoints';
-import type { Order, OrderStatus } from '@/api/types';
+import { getOrders } from '@/features/orders/api';
+import type { Order, OrderStatus } from '@/features/orders/types';
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -161,3 +161,5 @@ export default function OrdersPage(): React.ReactElement {
     </div>
   );
 }
+
+

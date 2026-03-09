@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { ProductMedia } from '@/api/types';
+import type { ProductMedia } from '../types';
 
 interface Props {
   existingMedia: ProductMedia[];

@@ -1,6 +1,6 @@
-import { isAxiosError } from '@/api/client';
-import { addProductMedia, deleteProductMedia, updateProduct, uploadFile } from '@/api/endpoints';
-import type { ProductMedia } from '@/api/types';
+import { isAxiosError } from '@/lib/api/client';
+import { addProductMedia, deleteProductMedia, updateProduct, uploadFile } from '../api';
+import type { ProductMedia } from '../types';
 import { IconArrowLeft } from '@/components/Icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -163,3 +163,4 @@ export default function EditProductPage(): React.ReactElement {
     </div>
   );
 }
+

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCommissions, approveCommission, payCommission } from '@/api/endpoints';
+import { getCommissions, approveCommission, payCommission } from '@/features/commissions/api';
 import { useAuth } from '@/hooks/use-auth';
-import type { Commission, CommissionStatus } from '@/api/types';
+import type { Commission, CommissionStatus } from '@/features/commissions/types';
 
 const STATUS_COLORS: Record<CommissionStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -196,3 +196,5 @@ export default function CommissionsPage(): React.ReactElement {
     </div>
   );
 }
+
+

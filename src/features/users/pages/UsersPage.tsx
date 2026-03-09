@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getUsers, getRoles, createUser, updateUser, deleteUser, assignUserRoles } from '@/api/endpoints';
-import type { AdminUser, RoleWithPermissions, CreateUserPayload, UpdateUserPayload } from '@/api/types';
+import { getUsers, createUser, updateUser, deleteUser, assignUserRoles } from '@/features/users/api';
+import { getRoles } from '@/features/roles/api';
+import type { AdminUser, CreateUserPayload, UpdateUserPayload } from '@/features/users/types';
+import type { RoleWithPermissions } from '@/features/roles/types';
 
 type ModalState =
   | { type: 'none' }
@@ -640,3 +642,5 @@ function DeleteUserModal({ user, isPending, onClose, onConfirm }: DeleteUserModa
     </div>
   );
 }
+
+

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getWallets } from '@/api/endpoints';
-import type { Wallet } from '@/api/types';
+import { getWallets } from '@/features/wallets/api';
+import type { Wallet } from '@/features/wallets/types';
 
 export default function WalletsPage(): React.ReactElement {
   const [page, setPage] = useState(1);
@@ -95,3 +95,5 @@ export default function WalletsPage(): React.ReactElement {
     </div>
   );
 }
+
+

@@ -1,5 +1,5 @@
-import { createBundle, deleteBundle, getBundles, updateBundle } from '@/api/endpoints';
-import type { Bundle, BundleType } from '@/api/types';
+import { createBundle, deleteBundle, getBundles, updateBundle } from '@/features/bundles/api';
+import type { Bundle, BundleType } from '@/features/bundles/types';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -474,3 +474,5 @@ export default function BundlesPage(): React.ReactElement {
     </main>
   );
 }
+
+

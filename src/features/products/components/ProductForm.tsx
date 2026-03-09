@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import { getCategories } from '@/api/endpoints';
+import { getCategories } from '@/features/categories/api';
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required').max(255),

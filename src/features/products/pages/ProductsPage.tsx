@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { useProducts } from '../hooks/use-products';
 import { useAuth } from '@/hooks/use-auth';
 import ProductRow from '../components/ProductRow';
 import { IconPlus, IconSearch } from '@/components/Icons';
-import type { ProductFilters } from '@/api/types';
+import type { ProductFilters } from '../types';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -87,11 +87,10 @@ export default function ProductsPage() {
               key={s}
               type="button"
               onClick={() => handleStatusChange(s)}
-              className={`px-3 py-2 font-medium capitalize transition-colors ${
-                status === s
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`px-3 py-2 font-medium capitalize transition-colors ${status === s
+                ? 'bg-indigo-600 text-white'
+                : 'text-gray-600 hover:bg-gray-50'
+                }`}
             >
               {s}
             </button>

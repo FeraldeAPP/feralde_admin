@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/endpoints';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/features/categories/api';
 import { useAuth } from '@/hooks/use-auth';
-import type { Category } from '@/api/types/catalog';
+import type { Category } from '@/features/categories/types';
 
 type ModalMode = null | 'create' | { edit: Category };
 
@@ -39,19 +39,19 @@ function CategoryModal({
     resolver: zodResolver(schema),
     defaultValues: editing
       ? {
-          name: editing.name,
-          description: editing.description ?? null,
-          parent_id: editing.parent_id ?? null,
-          sort_order: editing.sort_order,
-          is_active: editing.is_active,
-        }
+        name: editing.name,
+        description: editing.description ?? null,
+        parent_id: editing.parent_id ?? null,
+        sort_order: editing.sort_order,
+        is_active: editing.is_active,
+      }
       : {
-          name: '',
-          description: null,
-          parent_id: null,
-          sort_order: 0,
-          is_active: true,
-        },
+        name: '',
+        description: null,
+        parent_id: null,
+        sort_order: 0,
+        is_active: true,
+      },
   });
 
   const createMutation = useMutation({
@@ -331,11 +331,10 @@ export default function CategoriesPage(): React.ReactElement {
                       <td className="px-5 py-3 text-center text-gray-500">{cat.sort_order}</td>
                       <td className="px-5 py-3 text-center">
                         <span
-                          className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${
-                            cat.is_active
+                          className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${cat.is_active
                               ? 'bg-green-100 text-green-700'
                               : 'bg-gray-100 text-gray-500'
-                          }`}
+                            }`}
                         >
                           {cat.is_active ? 'Active' : 'Inactive'}
                         </span>
@@ -410,3 +409,5 @@ export default function CategoriesPage(): React.ReactElement {
     </main>
   );
 }
+
+

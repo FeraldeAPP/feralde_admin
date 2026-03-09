@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/auth-store';
-import { logout as apiLogout } from '@/api/endpoints';
-import type { User } from '@/api/types';
+import { logout as apiLogout } from '@/features/auth/api';
+import type { User } from '@/features/auth/types';
 
 export function useAuth() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
@@ -24,7 +24,7 @@ export function useAuth() {
       await apiLogout();
     } finally {
       setUser(null);
-      navigate('/login');
+      navigate({ to: '/login' });
     }
   }, [setUser, navigate]);
 
@@ -37,3 +37,4 @@ export function useAuth() {
     setLoading: (loading: boolean) => void;
   };
 }
+

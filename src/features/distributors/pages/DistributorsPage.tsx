@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getDistributors } from '@/api/endpoints';
-import type { Distributor, DistributorRank } from '@/api/types';
+import { getDistributors } from '@/features/distributors/api';
+import type { Distributor, DistributorRank } from '@/features/distributors/types';
 
 const RANK_COLORS: Record<DistributorRank, string> = {
   STARTER: 'bg-gray-100 text-gray-600',
@@ -127,3 +127,5 @@ export default function DistributorsPage(): React.ReactElement {
     </div>
   );
 }
+
+

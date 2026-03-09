@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { User } from '@/api/types';
+import type { User } from '@/features/auth/types';
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   isLoading: boolean;
   setUser: (user: User | null) => void;
@@ -14,3 +14,4 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
 }));
+
