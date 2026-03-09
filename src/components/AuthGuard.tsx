@@ -1,11 +1,12 @@
 import { Outlet } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/auth-store';
+import { useNavigate } from '@tanstack/react-router';
 
 const ADMIN_ROLES = ['admin', 'super-admin'];
 
 export default function AuthGuard() {
   const { user, isLoading } = useAuthStore();
-
+  const navigate = useNavigate();
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-sm text-gray-400">
@@ -15,6 +16,7 @@ export default function AuthGuard() {
   }
 
   if (!user) {
+    navigate({ to: '/login' });
     return null;
   }
 
