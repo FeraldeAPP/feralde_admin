@@ -11,3 +11,8 @@ export async function getReseller(id: number): Promise<ApiResponse<Reseller>> {
   const { data } = await client.get<ApiResponse<Reseller>>(`/resellers/${id}`);
   return data;
 }
+
+export async function approveReseller(id: number): Promise<ApiResponse<Reseller>> {
+  const { data } = await client.post<ApiResponse<Reseller>>(`/resellers/${id}/approve`);
+  return data;
+}

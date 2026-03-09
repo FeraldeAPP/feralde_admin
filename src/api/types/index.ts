@@ -51,6 +51,9 @@ export type {
   PeriodStatus,
   LeaderboardEntry,
   LeaderboardData,
+  WithdrawalStatus,
+  Withdrawal,
+  WithdrawalListData,
 } from './finance';
 export type {
   TrainingModule,

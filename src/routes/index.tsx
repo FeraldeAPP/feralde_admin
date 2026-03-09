@@ -1,28 +1,29 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import AuthGuard from '@/components/AuthGuard';
 import AdminShell from '@/components/AdminShell';
+import AuthGuard from '@/components/AuthGuard';
+import AccountingPage from '@/features/accounting/pages/AccountingPage';
 import LoginPage from '@/features/auth/pages/LoginPage';
+import BundlesPage from '@/features/bundles/pages/BundlesPage';
+import CategoriesPage from '@/features/categories/pages/CategoriesPage';
+import CommissionsPage from '@/features/commissions/pages/CommissionsPage';
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
-import ProductsPage from '@/features/products/pages/ProductsPage';
-import ProductDetailPage from '@/features/products/pages/ProductDetailPage';
+import DistributorDetailPage from '@/features/distributors/pages/DistributorDetailPage';
+import DistributorsPage from '@/features/distributors/pages/DistributorsPage';
+import InventoryPage from '@/features/inventory/pages/InventoryPage';
+import LeaderboardPage from '@/features/leaderboard/pages/LeaderboardPage';
+import MarketingPage from '@/features/marketing/pages/MarketingPage';
+import OrderDetailPage from '@/features/orders/pages/OrderDetailPage';
+import OrdersPage from '@/features/orders/pages/OrdersPage';
 import CreateProductPage from '@/features/products/pages/CreateProductPage';
 import EditProductPage from '@/features/products/pages/EditProductPage';
-import CategoriesPage from '@/features/categories/pages/CategoriesPage';
-import BundlesPage from '@/features/bundles/pages/BundlesPage';
+import ProductDetailPage from '@/features/products/pages/ProductDetailPage';
+import ProductsPage from '@/features/products/pages/ProductsPage';
 import PromoCodesPage from '@/features/promo-codes/pages/PromoCodesPage';
-import OrdersPage from '@/features/orders/pages/OrdersPage';
-import InventoryPage from '@/features/inventory/pages/InventoryPage';
-import DistributorsPage from '@/features/distributors/pages/DistributorsPage';
-import DistributorDetailPage from '@/features/distributors/pages/DistributorDetailPage';
 import ResellersPage from '@/features/resellers/pages/ResellersPage';
-import CommissionsPage from '@/features/commissions/pages/CommissionsPage';
-import WalletsPage from '@/features/wallets/pages/WalletsPage';
-import AccountingPage from '@/features/accounting/pages/AccountingPage';
-import LeaderboardPage from '@/features/leaderboard/pages/LeaderboardPage';
-import TrainingPage from '@/features/training/pages/TrainingPage';
-import MarketingPage from '@/features/marketing/pages/MarketingPage';
-import SettingsPage from '@/features/system/pages/SettingsPage';
 import AuditLogsPage from '@/features/system/pages/AuditLogsPage';
+import SettingsPage from '@/features/system/pages/SettingsPage';
+import TrainingPage from '@/features/training/pages/TrainingPage';
+import WalletsPage from '@/features/wallets/pages/WalletsPage';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
 
           // Commerce
           { path: '/orders', element: <OrdersPage /> },
+          { path: '/orders/:id', element: <OrderDetailPage /> },
           { path: '/inventory', element: <InventoryPage /> },
 
           // Network

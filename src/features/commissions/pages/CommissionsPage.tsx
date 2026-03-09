@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getCommissions } from '@/api/endpoints';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getCommissions, approveCommission, payCommission } from '@/api/endpoints';
+import { useAuth } from '@/hooks/use-auth';
 import type { Commission, CommissionStatus } from '@/api/types';
 
 const STATUS_COLORS: Record<CommissionStatus, string> = {
@@ -12,9 +13,77 @@ const STATUS_COLORS: Record<CommissionStatus, string> = {
 
 const ALL_STATUSES: CommissionStatus[] = ['PENDING', 'APPROVED', 'PAID', 'CANCELLED'];
 
+interface CommissionRowProps {
+  commission: Commission;
+  canUpdate: boolean;
+}
+
+function CommissionRow({ commission: c, canUpdate }: CommissionRowProps): React.ReactElement {
+  const queryClient = useQueryClient();
+
+  const approveMutation = useMutation({
+    mutationFn: () => approveCommission(c.id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['commissions'] });
+    },
+  });
+
+  const payMutation = useMutation({
+    mutationFn: () => payCommission(c.id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['commissions'] });
+    },
+  });
+
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-5 py-3">
+        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+          {c.commission_type.replace(/_/g, ' ')}
+        </span>
+      </td>
+      <td className="px-5 py-3 text-right font-mono text-gray-700">{parseFloat(c.base_amount).toFixed(2)}</td>
+      <td className="px-5 py-3 text-right font-mono text-gray-500">{parseFloat(c.rate).toFixed(2)}%</td>
+      <td className="px-5 py-3 text-right font-mono font-medium text-gray-900">{parseFloat(c.amount).toFixed(2)}</td>
+      <td className="px-5 py-3 text-center">
+        <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[c.status]}`}>
+          {c.status}
+        </span>
+      </td>
+      <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">
+        {new Date(c.created_at).toLocaleDateString()}
+      </td>
+      <td className="px-5 py-3 text-center">
+        {canUpdate && c.status === 'PENDING' && (
+          <button
+            type="button"
+            onClick={() => approveMutation.mutate()}
+            disabled={approveMutation.isPending}
+            className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {approveMutation.isPending ? 'Approving...' : 'Approve'}
+          </button>
+        )}
+        {canUpdate && c.status === 'APPROVED' && (
+          <button
+            type="button"
+            onClick={() => payMutation.mutate()}
+            disabled={payMutation.isPending}
+            className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {payMutation.isPending ? 'Processing...' : 'Mark Paid'}
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 export default function CommissionsPage(): React.ReactElement {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<CommissionStatus | ''>('');
+  const { hasPermission } = useAuth();
+  const canUpdate = hasPermission('commissions.update');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['commissions', page, status],
@@ -33,17 +102,24 @@ export default function CommissionsPage(): React.ReactElement {
       </header>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => { setStatus(''); setPage(1); }}
+        <button
+          type="button"
+          onClick={() => { setStatus(''); setPage(1); }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
             status === '' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-          }`}>
+          }`}
+        >
           All
         </button>
         {ALL_STATUSES.map((s) => (
-          <button key={s} type="button" onClick={() => { setStatus(s); setPage(1); }}
+          <button
+            key={s}
+            type="button"
+            onClick={() => { setStatus(s); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               status === s ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-            }`}>
+            }`}
+          >
             {s}
           </button>
         ))}
@@ -73,35 +149,19 @@ export default function CommissionsPage(): React.ReactElement {
                   <th className="px-5 py-3 text-right">Amount</th>
                   <th className="px-5 py-3 text-center">Status</th>
                   <th className="px-5 py-3 text-left">Date</th>
+                  <th className="px-5 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {result.commissions.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center text-gray-400">
+                    <td colSpan={7} className="px-5 py-16 text-center text-gray-400">
                       No commissions found
                     </td>
                   </tr>
                 ) : (
                   result.commissions.map((c: Commission) => (
-                    <tr key={c.id} className="hover:bg-gray-50">
-                      <td className="px-5 py-3">
-                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
-                          {c.commission_type.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right font-mono text-gray-700">{parseFloat(c.base_amount).toFixed(2)}</td>
-                      <td className="px-5 py-3 text-right font-mono text-gray-500">{parseFloat(c.rate).toFixed(2)}%</td>
-                      <td className="px-5 py-3 text-right font-mono font-medium text-gray-900">{parseFloat(c.amount).toFixed(2)}</td>
-                      <td className="px-5 py-3 text-center">
-                        <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[c.status]}`}>
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">
-                        {new Date(c.created_at).toLocaleDateString()}
-                      </td>
-                    </tr>
+                    <CommissionRow key={c.id} commission={c} canUpdate={canUpdate} />
                   ))
                 )}
               </tbody>
@@ -112,12 +172,20 @@ export default function CommissionsPage(): React.ReactElement {
             <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500 bg-gray-50">
               <span>Page {result.pagination.current_page} of {result.pagination.last_page}</span>
               <div className="flex gap-1">
-                <button type="button" disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+                >
                   Previous
                 </button>
-                <button type="button" disabled={page === result.pagination.last_page} onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium">
+                <button
+                  type="button"
+                  disabled={page === result.pagination.last_page}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+                >
                   Next
                 </button>
               </div>

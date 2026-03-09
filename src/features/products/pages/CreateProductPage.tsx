@@ -1,12 +1,12 @@
+import { isAxiosError } from '@/api/client';
+import { addProductMedia, createProduct, uploadFile } from '@/api/endpoints';
+import { IconArrowLeft } from '@/components/Icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import ProductForm from '../components/ProductForm';
 import MediaUploadPanel from '../components/MediaUploadPanel';
 import type { ProductFormValues } from '../components/ProductForm';
-import { createProduct, uploadFile, addProductMedia } from '@/api/endpoints';
-import { isAxiosError } from '@/api/client';
-import { IconArrowLeft } from '@/components/Icons';
+import ProductForm from '../components/ProductForm';
 
 export default function CreateProductPage(): React.ReactElement {
   const navigate = useNavigate();

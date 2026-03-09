@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getOrders } from '@/api/endpoints';
 import type { Order, OrderStatus } from '@/api/types';
@@ -84,12 +85,13 @@ export default function OrdersPage(): React.ReactElement {
                   <th className="px-5 py-3 text-center">Payment</th>
                   <th className="px-5 py-3 text-right">Total</th>
                   <th className="px-5 py-3 text-left">Date</th>
+                  <th className="px-5 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {result.orders.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-16 text-center text-gray-400">
+                    <td colSpan={6} className="px-5 py-16 text-center text-gray-400">
                       No orders found
                     </td>
                   </tr>
@@ -123,6 +125,14 @@ export default function OrdersPage(): React.ReactElement {
                       </td>
                       <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
                         {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <Link
+                          to={`/orders/${order.id}`}
+                          className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          View
+                        </Link>
                       </td>
                     </tr>
                   ))

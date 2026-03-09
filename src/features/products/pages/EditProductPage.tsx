@@ -1,14 +1,14 @@
+import { isAxiosError } from '@/api/client';
+import { addProductMedia, deleteProductMedia, updateProduct, uploadFile } from '@/api/endpoints';
+import type { ProductMedia } from '@/api/types';
+import { IconArrowLeft } from '@/components/Icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import ProductForm from '../components/ProductForm';
 import MediaUploadPanel from '../components/MediaUploadPanel';
 import type { ProductFormValues } from '../components/ProductForm';
+import ProductForm from '../components/ProductForm';
 import { useProduct } from '../hooks/use-products';
-import { updateProduct, deleteProductMedia, uploadFile, addProductMedia } from '@/api/endpoints';
-import { isAxiosError } from '@/api/client';
-import { IconArrowLeft } from '@/components/Icons';
-import type { ProductMedia } from '@/api/types';
 
 export default function EditProductPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();

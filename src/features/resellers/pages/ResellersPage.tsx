@@ -1,10 +1,14 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getResellers } from '@/api/endpoints';
+import { approveReseller, getResellers } from '@/api/endpoints';
 import type { Reseller } from '@/api/types';
+import { useAuth } from '@/hooks/use-auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 export default function ResellersPage(): React.ReactElement {
   const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+  const canUpdate = hasPermission('resellers.update');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['resellers', page],
@@ -12,6 +16,13 @@ export default function ResellersPage(): React.ReactElement {
   });
 
   const result = data?.success ? data.data : null;
+
+  const approveMutation = useMutation({
+    mutationFn: (id: number) => approveReseller(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['resellers'] });
+    },
+  });
 
   return (
     <div className="p-6 space-y-5">
@@ -45,12 +56,15 @@ export default function ResellersPage(): React.ReactElement {
                   <th className="px-5 py-3 text-left">City</th>
                   <th className="px-5 py-3 text-right">Total Sales</th>
                   <th className="px-5 py-3 text-center">Approved</th>
+                  {canUpdate && (
+                    <th className="px-5 py-3 text-center">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {result.resellers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-16 text-center text-gray-400">
+                    <td colSpan={canUpdate ? 6 : 5} className="px-5 py-16 text-center text-gray-400">
                       No resellers found
                     </td>
                   </tr>
@@ -72,6 +86,20 @@ export default function ResellersPage(): React.ReactElement {
                           ? new Date(r.approved_at).toLocaleDateString()
                           : <span className="text-amber-600 font-medium">Pending</span>}
                       </td>
+                      {canUpdate && (
+                        <td className="px-5 py-3 text-center">
+                          {!r.approved_at && (
+                            <button
+                              type="button"
+                              onClick={() => approveMutation.mutate(r.id)}
+                              disabled={approveMutation.isPending}
+                              className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {approveMutation.isPending ? 'Approving...' : 'Approve'}
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

@@ -11,3 +11,13 @@ export async function getCommission(id: number): Promise<ApiResponse<Commission>
   const { data } = await client.get<ApiResponse<Commission>>(`/commissions/${id}`);
   return data;
 }
+
+export async function approveCommission(id: number): Promise<ApiResponse<Commission>> {
+  const { data } = await client.post<ApiResponse<Commission>>(`/commissions/${id}/approve`);
+  return data;
+}
+
+export async function payCommission(id: number): Promise<ApiResponse<Commission>> {
+  const { data } = await client.post<ApiResponse<Commission>>(`/commissions/${id}/pay`);
+  return data;
+}
