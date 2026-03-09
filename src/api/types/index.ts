@@ -1,5 +1,20 @@
 export type { ApiSuccess, ApiError, ApiResponse, Pagination } from './common';
-export type { User, Role, LoginPayload } from './auth';
+export type {
+  User,
+  Role,
+  LoginPayload,
+  AdminUser,
+  AdminUserRole,
+  RoleWithPermissions,
+  Permission,
+  UserListData,
+  CreateUserPayload,
+  UpdateUserPayload,
+  AssignRolesPayload,
+  CreateRolePayload,
+  ChangePasswordPayload,
+  ResetPasswordPayload,
+} from './auth';
 export type {
   PricingTier,
   VariantPricing,

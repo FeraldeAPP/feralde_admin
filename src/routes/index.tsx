@@ -23,6 +23,9 @@ import AuditLogsPage from '@/features/system/pages/AuditLogsPage';
 import SettingsPage from '@/features/system/pages/SettingsPage';
 import TrainingPage from '@/features/training/pages/TrainingPage';
 import WalletsPage from '@/features/wallets/pages/WalletsPage';
+import UsersPage from '@/features/users/pages/UsersPage';
+import RolesPage from '@/features/roles/pages/RolesPage';
+import ProfilePage from '@/features/profile/pages/ProfilePage';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 export const router = createBrowserRouter([
@@ -68,6 +71,11 @@ export const router = createBrowserRouter([
           // System
           { path: '/system/settings', element: <SettingsPage /> },
           { path: '/system/audit-logs', element: <AuditLogsPage /> },
+
+          // Management
+          { path: '/users', element: <UsersPage /> },
+          { path: '/roles', element: <RolesPage /> },
+          { path: '/profile', element: <ProfilePage /> },
 
           { path: '*', element: <Navigate to="/" replace /> },
         ],

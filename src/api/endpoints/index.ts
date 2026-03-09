@@ -16,4 +16,8 @@ export { approveReseller, getReseller, getResellers } from './resellers';
 export { getAuditLogs, getLeaderboard, getSystemSettings } from './system';
 export { createTrainingModule, deleteTrainingModule, getTrainingModule, getTrainingModules, publishTrainingModule, updateTrainingModule } from './training';
 export { approveWithdrawal, getWallet, getWalletWithdrawals, getWallets, rejectWithdrawal } from './wallets';
+export { getUsers, getUser, createUser, updateUser, deleteUser, assignUserRoles } from './users';
+export { getRoles, createRole } from './roles';
+export { getPermissions } from './permissions';
+export { changePassword, resendVerificationEmail, verifyEmailByLink, resetPasswordWithToken } from './profile';
 

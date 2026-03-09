@@ -18,6 +18,7 @@ import {
   IconTicket,
   IconTrophy,
   IconChartBar,
+  IconBell,
 } from './Icons';
 
 export default function AdminShell() {
@@ -73,6 +74,12 @@ export default function AdminShell() {
           <NavSection label="System">
             <SidebarLink to="/system/settings" icon={<IconCog className="w-4 h-4" />} label="Settings" />
             <SidebarLink to="/system/audit-logs" icon={<IconClipboard className="w-4 h-4" />} label="Audit Logs" />
+          </NavSection>
+
+          <NavSection label="Management">
+            <SidebarLink to="/users" icon={<IconUsers className="w-4 h-4" />} label="Users" />
+            <SidebarLink to="/roles" icon={<IconBell className="w-4 h-4" />} label="Roles & Permissions" />
+            <SidebarLink to="/profile" icon={<IconUser className="w-4 h-4" />} label="My Profile" />
           </NavSection>
         </nav>
 
