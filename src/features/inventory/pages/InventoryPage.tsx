@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { getInventory, adjustInventory } from '@/api/endpoints';
-import { useAuth } from '@/hooks/use-auth';
+import { adjustInventory, getInventory } from '@/api/endpoints';
 import type { InventoryItem } from '@/api/types';
+import { useAuth } from '@/hooks/use-auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const adjustSchema = z.object({
   type: z.enum(['INCREMENT', 'DECREMENT', 'SET']),
-  quantity: z.number({ invalid_type_error: 'Required' }).min(0),
+  quantity: z.number().min(0, 'Quantity is required'),
   reason: z.string().optional(),
 });
 
@@ -239,7 +239,7 @@ export default function InventoryPage(): React.ReactElement {
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   {errors.quantity && (
-                    <p className="mt-1 text-xs text-red-600">{errors.quantity.message}</p>
+                    <p className="mt-1 text-xs text-red-600">{String(errors.quantity.message)}</p>
                   )}
                 </div>
 

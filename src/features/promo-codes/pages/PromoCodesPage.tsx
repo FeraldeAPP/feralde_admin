@@ -1,11 +1,11 @@
+import { createPromoCode, deletePromoCode, getPromoCodes, updatePromoCode } from '@/api/endpoints';
+import type { PromoCode, PromoCodeType } from '@/api/types';
+import { useAuth } from '@/hooks/use-auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { getPromoCodes, createPromoCode, updatePromoCode, deletePromoCode } from '@/api/endpoints';
-import { useAuth } from '@/hooks/use-auth';
-import type { PromoCode, PromoCodeType } from '@/api/types';
 
 type ModalMode = null | 'create' | { edit: PromoCode };
 
@@ -27,7 +27,7 @@ const schema = z.object({
     'BUY_X_GET_Y',
     'BUNDLE_DEAL',
   ] as const),
-  value: z.number({ invalid_type_error: 'Value must be a number' }).min(0, 'Value must be 0 or more'),
+  value: z.number().min(0, 'Value must be 0 or more'),
   min_order_amount: z.number().nullable().optional(),
   max_discount: z.number().nullable().optional(),
   usage_limit: z.number().int().nullable().optional(),
@@ -208,7 +208,7 @@ function PromoCodeModal({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.value && (
-              <p className="mt-1 text-xs text-red-600">{errors.value.message}</p>
+              <p className="mt-1 text-xs text-red-600">{String(errors.value.message)}</p>
             )}
           </div>
 

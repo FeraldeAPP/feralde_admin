@@ -16,8 +16,8 @@ const schema = z.object({
   description: z.string().nullable().optional(),
   type: z.enum(['FIXED', 'DYNAMIC', 'GIFT_SET'] as const),
   image_url: z.string().nullable().optional(),
-  retail_price: z.number({ invalid_type_error: 'Retail price must be a number' }).min(0, 'Retail price must be 0 or more'),
-  distributor_price: z.number({ invalid_type_error: 'Distributor price must be a number' }).min(0, 'Distributor price must be 0 or more'),
+  retail_price: z.number().min(0, 'Retail price must be 0 or more'),
+  distributor_price: z.number().min(0, 'Distributor price must be 0 or more'),
   is_active: z.boolean().optional(),
   starts_at: z.string().nullable().optional(),
   ends_at: z.string().nullable().optional(),
@@ -199,7 +199,7 @@ function BundleModal({
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.retail_price && (
-                <p className="mt-1 text-xs text-red-600">{errors.retail_price.message}</p>
+                <p className="mt-1 text-xs text-red-600">{String(errors.retail_price.message)}</p>
               )}
             </div>
             <div>
@@ -215,7 +215,7 @@ function BundleModal({
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.distributor_price && (
-                <p className="mt-1 text-xs text-red-600">{errors.distributor_price.message}</p>
+                <p className="mt-1 text-xs text-red-600">{String(errors.distributor_price.message)}</p>
               )}
             </div>
           </div>

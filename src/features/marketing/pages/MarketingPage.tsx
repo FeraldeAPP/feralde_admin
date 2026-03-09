@@ -255,7 +255,7 @@ export default function MarketingPage(): React.ReactElement {
   });
 
   const unpublishMutation = useMutation({
-    mutationFn: (id: number) => updateAnnouncement(id, { is_published: false }),
+    mutationFn: (id: number) => updateAnnouncement(id, { is_pinned: false }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['announcements'] });
     },
