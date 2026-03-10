@@ -1,22 +1,7 @@
-"use client"
-
-import * as React from "react"
-import { useLocation, Link } from "@tanstack/react-router"
-import {
-    Home01Icon,
-    ShoppingBag01Icon,
-    UserMultiple02Icon,
-    PackageIcon,
-    CourseIcon,
-    ChartAverageIcon,
-    Wallet02Icon,
-    Coins01Icon,
-    ActivityIcon,
-} from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -25,84 +10,79 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
-    SidebarFooter,
 } from "@/components/ui/sidebar"
+import {
+    Audit01Icon,
+    ChartAverageIcon,
+    Coins01Icon,
+    CouponPercentIcon,
+    CourseIcon,
+    GiftIcon,
+    Home01Icon,
+    Invoice01Icon,
+    PackageIcon,
+    PercentIcon,
+    RankingIcon,
+    Setting07Icon,
+    Shield01Icon,
+    ShoppingBag01Icon,
+    Tag01Icon,
+    UserMultiple02Icon,
+    Wallet02Icon
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Link, useLocation } from "@tanstack/react-router"
+import * as React from "react"
 
 
 const navItems = [
     {
         label: "Overview",
         items: [
-            {
-                title: "Dashboard",
-                url: "/distributor", // Updated to match current app structure
-                icon: Home01Icon,
-            },
+            { title: "Dashboard", url: "/", icon: Home01Icon },
         ],
     },
     {
-        label: "Management",
+        label: "E-Commerce",
         items: [
-            {
-                title: "E-Commerce",
-                url: "/ecommerce",
-                icon: ShoppingBag01Icon,
-            },
-            {
-                title: "Distributor",
-                url: "/dashboard/distributor",
-                icon: UserMultiple02Icon,
-            },
-            {
-                title: "Inventory",
-                url: "/inventory",
-                icon: PackageIcon,
-            },
+            { title: "Products", url: "/products", icon: ShoppingBag01Icon },
+            { title: "Categories", url: "/categories", icon: Tag01Icon },
+            { title: "Bundles", url: "/bundles", icon: GiftIcon },
+            { title: "Promo Codes", url: "/promo-codes", icon: CouponPercentIcon },
+            { title: "Orders", url: "/orders", icon: Invoice01Icon },
+        ],
+    },
+    {
+        label: "Network",
+        items: [
+            { title: "Distributors", url: "/distributors", icon: UserMultiple02Icon },
+            { title: "Resellers", url: "/resellers", icon: UserMultiple02Icon },
+            { title: "Leaderboard", url: "/leaderboard", icon: RankingIcon },
         ],
     },
     {
         label: "Operations",
         items: [
-            {
-                title: "Trainings & Modules",
-                url: "/trainings",
-                icon: CourseIcon,
-            },
-            {
-                title: "Marketing Tools",
-                url: "/marketing",
-                icon: ChartAverageIcon,
-            },
+            { title: "Inventory", url: "/inventory", icon: PackageIcon },
+            { title: "Training", url: "/training", icon: CourseIcon },
+            { title: "Marketing", url: "/marketing", icon: ChartAverageIcon },
         ],
     },
     {
         label: "Finance",
         items: [
-            {
-                title: "Expense AP",
-                url: "/finance/expense",
-                icon: Wallet02Icon,
-            },
-            {
-                title: "Revenue AR",
-                url: "/finance/revenue",
-                icon: Coins01Icon,
-            },
-            {
-                title: "Profit & Loss",
-                url: "/finance/profit-loss",
-                icon: ActivityIcon,
-            },
+            { title: "Commissions", url: "/commissions", icon: PercentIcon },
+            { title: "Wallets", url: "/wallets", icon: Wallet02Icon },
+            { title: "Accounting", url: "/accounting", icon: Coins01Icon },
         ],
     },
     {
         label: "Administration",
         items: [
-            {
-                title: "Staffs & Users",
-                url: "/staffs",
-                icon: UserMultiple02Icon,
-            },
+            { title: "Users", url: "/users", icon: UserMultiple02Icon },
+            { title: "Roles", url: "/roles", icon: Shield01Icon },
+            { title: "Settings", url: "/system/settings", icon: Setting07Icon },
+            { title: "Audit Logs", url: "/system/audit-logs", icon: Audit01Icon },
         ],
     },
 ]

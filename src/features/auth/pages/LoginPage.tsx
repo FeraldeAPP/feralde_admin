@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { useSearch, useNavigate } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { login } from '@/features/auth/api';
-import { useAuthStore } from '@/stores/auth-store';
 import { isAxiosError } from '@/lib/api/client';
-import { IconBox } from '@/components/Icons';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuthStore } from '@/stores/auth-store';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
 import { router } from '@/routes';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 const schema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email'),

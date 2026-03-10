@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getDistributor,
-  getNetworkResellers,
-  assignDistributorCity,
-  unassignDistributorCity,
-  approveDistributor,
-  rejectDistributor,
-  suspendDistributor,
-  unsuspendDistributor,
+    approveDistributor,
+    assignDistributorCity,
+    getDistributor,
+    getNetworkResellers,
+    rejectDistributor,
+    suspendDistributor,
+    unassignDistributorCity,
+    unsuspendDistributor,
 } from '@/features/distributors/api';
 import type { Distributor, DistributorRank, NetworkReseller } from '@/features/distributors/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { useState } from 'react';
 
 const RANK_COLORS: Record<DistributorRank, string> = {
   STARTER: 'bg-gray-100 text-gray-600',
@@ -38,7 +38,7 @@ function resellerLinkType(r: NetworkReseller, assignedCity: string | null): 'dir
 }
 
 export default function DistributorDetailPage(): React.ReactElement {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams({ strict: false });
   const navigate = useNavigate();
   const qc = useQueryClient();
   const distributorId = Number(id);
@@ -116,7 +116,7 @@ export default function DistributorDetailPage(): React.ReactElement {
         <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           Distributor not found or failed to load.
         </div>
-        <button type="button" onClick={() => navigate('/distributors')}
+        <button type="button" onClick={() => void navigate({ to: '/distributors' })}
           className="text-sm text-indigo-600 hover:underline">
           Back to Distributors
         </button>

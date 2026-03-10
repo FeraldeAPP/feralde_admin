@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { getCategories } from '@/features/categories/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { getCategories } from '@/features/categories/api';
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
@@ -31,7 +30,7 @@ interface Props {
   submitLabel: string;
   serverError: string | null;
   fieldErrors?: Record<string, string[]>;
-  cancelTo: string;
+  onCancel: () => void;
 }
 
 function FieldError({ message }: { message: string | undefined }): React.ReactElement | null {
@@ -48,7 +47,7 @@ function slugify(str: string): string {
     .replace(/-+/g, '-');
 }
 
-export default function ProductForm({ defaultValues, onSubmit, submitLabel, serverError, fieldErrors, cancelTo }: Props): React.ReactElement {
+export default function ProductForm({ defaultValues, onSubmit, submitLabel, serverError, fieldErrors, onCancel }: Props): React.ReactElement {
   const {
     register,
     handleSubmit,
@@ -320,12 +319,13 @@ export default function ProductForm({ defaultValues, onSubmit, submitLabel, serv
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
-        <Link
-          to={cancelTo}
+        <button
+          type="button"
+          onClick={onCancel}
           className="text-sm font-medium text-gray-600 px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
         >
           Cancel
-        </Link>
+        </button>
         <button
           type="submit" disabled={isSubmitting}
           className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

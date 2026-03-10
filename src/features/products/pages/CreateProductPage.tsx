@@ -1,9 +1,9 @@
-import { isAxiosError } from '@/lib/api/client';
-import { addProductMedia, createProduct, uploadFile } from '../api';
 import { IconArrowLeft } from '@/components/Icons';
+import { isAxiosError } from '@/lib/api/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { addProductMedia, createProduct, uploadFile } from '../api';
 import MediaUploadPanel from '../components/MediaUploadPanel';
 import type { ProductFormValues } from '../components/ProductForm';
 import ProductForm from '../components/ProductForm';
@@ -54,7 +54,7 @@ export default function CreateProductPage(): React.ReactElement {
       }
 
       await queryClient.invalidateQueries({ queryKey: ['products'] });
-      navigate(`/products/${productId}`);
+      void navigate({ to: '/products/$id', params: { id: String(productId) } });
     } catch (err) {
       setUploadProgress(null);
       if (isAxiosError(err) && err.response?.data) {
@@ -97,7 +97,7 @@ export default function CreateProductPage(): React.ReactElement {
         submitLabel="Create product"
         serverError={serverError}
         fieldErrors={fieldErrors}
-        cancelTo="/products"
+        onCancel={() => void navigate({ to: '/products' })}
       />
     </div>
   );

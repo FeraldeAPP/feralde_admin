@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useState } from 'react';
+import { Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 
 const areaData = [
     { name: 'JAN', value: 15 },

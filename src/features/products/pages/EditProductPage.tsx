@@ -1,17 +1,17 @@
-import { isAxiosError } from '@/lib/api/client';
-import { addProductMedia, deleteProductMedia, updateProduct, uploadFile } from '../api';
-import type { ProductMedia } from '../types';
 import { IconArrowLeft } from '@/components/Icons';
+import { isAxiosError } from '@/lib/api/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { addProductMedia, deleteProductMedia, updateProduct, uploadFile } from '../api';
 import MediaUploadPanel from '../components/MediaUploadPanel';
 import type { ProductFormValues } from '../components/ProductForm';
 import ProductForm from '../components/ProductForm';
 import { useProduct } from '../hooks/use-products';
+import type { ProductMedia } from '../types';
 
 export default function EditProductPage(): React.ReactElement {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams({ strict: false });
   const productId = Number(id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -74,7 +74,7 @@ export default function EditProductPage(): React.ReactElement {
       }
 
       await queryClient.invalidateQueries({ queryKey: ['products'] });
-      navigate(`/products/${productId}`);
+      void navigate({ to: '/products/$id', params: { id: String(productId) } });
     } catch (err) {
       setUploadProgress(null);
       if (isAxiosError(err) && err.response?.data) {
@@ -114,8 +114,7 @@ export default function EditProductPage(): React.ReactElement {
   return (
     <div className="p-6 space-y-5 max-w-2xl">
       <header className="space-y-1">
-        <Link
-          to={`/products/${productId}`}
+        <Link to="/products/$id" params={{ id: String(productId) }}
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
         >
           <IconArrowLeft className="w-3.5 h-3.5" />
@@ -158,7 +157,7 @@ export default function EditProductPage(): React.ReactElement {
         submitLabel="Save changes"
         serverError={serverError}
         fieldErrors={fieldErrors}
-        cancelTo={`/products/${productId}`}
+        onCancel={() => void navigate({ to: '/products/$id', params: { id: String(productId) } })}
       />
     </div>
   );

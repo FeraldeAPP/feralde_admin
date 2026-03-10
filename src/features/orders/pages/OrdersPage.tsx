@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { getOrders } from '@/features/orders/api';
 import type { Order, OrderStatus } from '@/features/orders/types';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -128,7 +128,8 @@ export default function OrdersPage(): React.ReactElement {
                       </td>
                       <td className="px-5 py-3 text-center">
                         <Link
-                          to={`/orders/${order.id}`}
+                          to="/orders/$id"
+                          params={{ id: String(order.id) }}
                           className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
                         >
                           View

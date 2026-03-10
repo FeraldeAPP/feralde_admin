@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
+import { IconBox, IconPencil } from '@/components/Icons';
 import { useAuth } from '@/hooks/use-auth';
-import { IconPencil, IconBox } from '@/components/Icons';
+import { Link } from '@tanstack/react-router';
 import type { Product } from '../types';
 
 interface Props {
@@ -62,14 +62,16 @@ export default function ProductRow({ product }: Props) {
       <td className="px-5 py-3.5">
         <div className="flex justify-end items-center gap-1">
           <Link
-            to={`/products/${product.id}`}
+            to="/products/$id"
+            params={{ id: String(product.id) }}
             className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors"
           >
             View
           </Link>
           {canUpdate && (
             <Link
-              to={`/products/${product.id}/edit`}
+              to="/products/$id/edit"
+              params={{ id: String(product.id) }}
               className="p-1.5 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
               title="Edit"
             >

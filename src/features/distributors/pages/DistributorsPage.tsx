@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { getDistributors } from '@/features/distributors/api';
 import type { Distributor, DistributorRank } from '@/features/distributors/types';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 
 const RANK_COLORS: Record<DistributorRank, string> = {
   STARTER: 'bg-gray-100 text-gray-600',
@@ -77,7 +77,8 @@ export default function DistributorsPage(): React.ReactElement {
                     <tr key={d.id} className="hover:bg-gray-50">
                       <td className="px-5 py-3">
                         <Link
-                          to={`/distributors/${d.id}`}
+                          to="/distributors/$id"
+                          params={{ id: String(d.id) }}
                           className="font-mono font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
                         >
                           {d.distributor_code}
