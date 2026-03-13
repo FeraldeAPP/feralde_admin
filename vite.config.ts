@@ -43,4 +43,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['feralde-admin.chysev.cloud'],
+  },
 })
