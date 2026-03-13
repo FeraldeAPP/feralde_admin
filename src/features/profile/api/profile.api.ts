@@ -1,3 +1,4 @@
+import { authClient } from '@/lib/api/auth-client';
 import { client } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
 import type { ChangePasswordPayload, ResetPasswordPayload } from '../types';
@@ -18,6 +19,6 @@ export async function verifyEmailByLink(link: string): Promise<ApiResponse<null>
 }
 
 export async function resetPasswordWithToken(payload: ResetPasswordPayload): Promise<ApiResponse<null>> {
-    const { data } = await client.post<ApiResponse<null>>('/auth/reset-password', payload);
+    const { data } = await authClient.post<ApiResponse<null>>('/auth/reset-password', payload);
     return data;
 }

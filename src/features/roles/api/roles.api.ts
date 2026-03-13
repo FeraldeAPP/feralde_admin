@@ -1,4 +1,4 @@
-import { client } from '@/lib/api/client';
+import { authClient as client } from '@/lib/api/auth-client';
 import type { ApiResponse } from '@/lib/api/types';
 import type { RoleWithPermissions, CreateRolePayload, Permission } from '../types';
 

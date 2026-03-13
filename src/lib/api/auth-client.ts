@@ -1,15 +1,15 @@
 import type { AxiosError } from 'axios';
 import axios from 'axios';
 
-export const client = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
+export const authClient = axios.create({
+    baseURL: import.meta.env.VITE_AUTH_URL || '/api',
     withCredentials: true,
     headers: {
         Accept: 'application/json',
     },
 });
 
-client.interceptors.request.use((config) => {
+authClient.interceptors.request.use((config) => {
     const xsrf = document.cookie
         .split('; ')
         .find((row) => row.startsWith('XSRF-TOKEN='))
@@ -19,8 +19,6 @@ client.interceptors.request.use((config) => {
         config.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrf);
     }
 
-    // Only set Content-Type to application/json if we're not sending FormData
-    // When sending FormData, axios will automatically set the correct Content-Type with boundary
     if (!(config.data instanceof FormData)) {
         config.headers['Content-Type'] = 'application/json';
     }
