@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useProduct } from '../hooks/use-products';
 import { useAuth } from '@/hooks/use-auth';
 import { deleteProduct } from '../api';
+import { resolveMediaUrl } from '@/lib/utils';
 import { IconArrowLeft, IconPencil, IconTrash, IconBox, IconTag, IconStar, IconSparkles, IconCheck } from '@/components/Icons';
 import type { ProductVariant, ProductMedia } from '../types';
 
@@ -71,7 +72,7 @@ function ImageGallery({ media }: { media: ProductMedia[] }): React.ReactElement 
       <div className="p-4 space-y-3">
         <div className="aspect-square rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
           <img
-            src={active.url}
+            src={resolveMediaUrl(active.url)}
             alt={active.alt_text ?? 'Product image'}
             className="w-full h-full object-contain"
           />
@@ -86,7 +87,7 @@ function ImageGallery({ media }: { media: ProductMedia[] }): React.ReactElement 
                 className={`w-14 h-14 rounded-md overflow-hidden border-2 transition-colors ${active.id === m.id ? 'border-indigo-500' : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
-                <img src={m.url} alt={m.alt_text ?? ''} className="w-full h-full object-cover" />
+                <img src={resolveMediaUrl(m.url)} alt={m.alt_text ?? ''} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

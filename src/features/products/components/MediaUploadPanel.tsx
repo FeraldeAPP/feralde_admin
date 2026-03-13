@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { resolveMediaUrl } from '@/lib/utils';
 import type { ProductMedia } from '../types';
 
 interface Props {
@@ -49,7 +50,7 @@ export default function MediaUploadPanel({
             {existingMedia.map((m) => (
               <div key={m.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                 <img
-                  src={m.url}
+                  src={resolveMediaUrl(m.url)}
                   alt={m.alt_text ?? 'Product image'}
                   className="w-full h-full object-cover"
                 />
