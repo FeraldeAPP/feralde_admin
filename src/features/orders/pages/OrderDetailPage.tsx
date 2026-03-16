@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useParams } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOrder, updateOrderStatus } from '@/features/orders/api';
 import { useAuth } from '@/hooks/use-auth';
@@ -20,7 +20,7 @@ const ALL_STATUSES: OrderStatus[] = [
 ];
 
 export default function OrderDetailPage(): React.ReactElement {
-  const { id } = useParams<{ id: string }>();
+ const { id } = useParams({ strict: false });
 
   if (!id) return <div>Invalid order</div>;
 

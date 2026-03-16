@@ -1,6 +1,6 @@
 import { createRoute } from '@tanstack/react-router';
-import ProductsPage from './pages/ProductsPage';
-import CreateProductPage from './pages/CreateProductPage';
+import ProductsPage from './pages/ProductsPage.new'; 
+import CreateProductPage from './pages/CreateProductPage.new';
 import ProductDetailPage from './pages/ProductDetailPage';
 import EditProductPage from './pages/EditProductPage';
 import { adminShellRoute } from '@/routes/layouts';
