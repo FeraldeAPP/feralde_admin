@@ -166,42 +166,44 @@ export default function CreateProductPage(): React.ReactElement {
     ];
 
     return (
-        <div className="p-6 space-y-5 min-h-full bg-white">
+        <div className="p-4 sm:p-6 space-y-5 min-h-full bg-white">
 
             {/* Top */}
             <div className="flex items-start justify-between">
                 <p className="text-xs text-stone-400">{today}</p>
                 <button type="button" className="flex items-center gap-1.5 text-sm text-stone-600 border border-stone-200 px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors">
-                    Export As
+                    <span className="hidden sm:inline">Export As</span>
                     <HugeiconsIcon icon={Download01Icon} size={14} />
                 </button>
             </div>
 
             {/* Title + Return */}
             <div className="space-y-1">
-                <h1 className="text-2xl font-bold text-stone-900">Create Product</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-stone-900">Create Product</h1>
                 <Link to="/products" className="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-700 transition-colors">
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
                     Return
                 </Link>
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-0 border-b border-stone-200">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                            activeTab === tab.key
-                                ? 'border-stone-900 text-stone-900'
-                                : 'border-transparent text-stone-400 hover:text-stone-700'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Tabs — scrollable on mobile */}
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                <div className="flex items-center gap-0 border-b border-stone-200 min-w-max sm:min-w-0">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                                activeTab === tab.key
+                                    ? 'border-stone-900 text-stone-900'
+                                    : 'border-transparent text-stone-400 hover:text-stone-700'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {serverError && (
@@ -218,13 +220,13 @@ export default function CreateProductPage(): React.ReactElement {
 
                 {/* ── General Information Tab ── */}
                 {activeTab === 'general' && (
-                    <div className="flex gap-8">
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
                         {/* Left — Form */}
-                        <div className="flex-1 space-y-6">
+                        <div className="flex-1 space-y-5">
 
                             {/* Product Type + SKU */}
-                            <div className="grid grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Product Type</label>
                                     <input {...register('name')} placeholder="Light Mocha Tea" className={inputCls} />
@@ -238,7 +240,7 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
 
                             {/* Category + Sub-Category + Product Unit */}
-                            <div className="grid grid-cols-3 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Category</label>
                                     <select {...register('category_id', { setValueAs: (v: string) => v === '' ? null : Number(v) })} className={inputCls}>
@@ -266,7 +268,7 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
 
                             {/* Brand + Unit Price + Product Tax */}
-                            <div className="grid grid-cols-3 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Brand</label>
                                     <select className={inputCls}>
@@ -285,7 +287,7 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
 
                             {/* Product Price + Expense + Stock Alert */}
-                            <div className="grid grid-cols-3 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Product Price</label>
                                     <input type="number" defaultValue={0} className={inputCls} />
@@ -301,7 +303,7 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
 
                             {/* Tax Method + Discount */}
-                            <div className="grid grid-cols-3 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Tax Method</label>
                                     <select className={inputCls}>
@@ -317,7 +319,7 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
 
                             {/* Promotional Price */}
-                            <div className="grid grid-cols-3 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                                 <div>
                                     <label className={labelCls}>Promotional Price</label>
                                     <input type="number" defaultValue={0} className={inputCls} />
@@ -343,10 +345,10 @@ export default function CreateProductPage(): React.ReactElement {
                                 <div
                                     onDrop={handleDrop}
                                     onDragOver={(e) => e.preventDefault()}
-                                    className="flex flex-col items-center justify-center gap-2 border border-dashed border-stone-300 rounded-2xl px-6 py-16 text-center bg-white"
+                                    className="flex flex-col items-center justify-center gap-2 border border-dashed border-stone-300 rounded-2xl px-6 py-12 sm:py-16 text-center bg-white"
                                 >
                                     {pendingFiles.length > 0 && (
-                                        <div className="grid grid-cols-4 gap-3 w-full mb-4">
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 w-full mb-4">
                                             {pendingFiles.map((file, i) => (
                                                 <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-stone-200">
                                                     <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover" />
@@ -414,8 +416,8 @@ export default function CreateProductPage(): React.ReactElement {
                             </div>
                         </div>
 
-                        {/* Right — Product Menu */}
-                        <div className="w-64 shrink-0">
+                        {/* Right — Product Menu (moves below on mobile) */}
+                        <div className="w-full lg:w-64 lg:shrink-0">
                             <div className="border border-stone-200 rounded-xl p-4 space-y-4">
                                 <h3 className="text-sm font-semibold text-stone-800">Product Menu</h3>
                                 {([
@@ -460,7 +462,7 @@ export default function CreateProductPage(): React.ReactElement {
                         </div>
 
                         {pendingFiles.length > 0 && (
-                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                 {pendingFiles.map((file, i) => (
                                     <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
                                         <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover" />
@@ -484,7 +486,7 @@ export default function CreateProductPage(): React.ReactElement {
                         <div
                             onDrop={handleDrop}
                             onDragOver={(e) => e.preventDefault()}
-                            className="flex flex-col items-center justify-center gap-2 border border-dashed border-stone-300 rounded-2xl px-6 py-20 text-center bg-white"
+                            className="flex flex-col items-center justify-center gap-2 border border-dashed border-stone-300 rounded-2xl px-6 py-16 sm:py-20 text-center bg-white"
                         >
                             <p className="text-sm font-medium text-stone-600">Drop product image here</p>
                             <p className="text-xs text-stone-400">or</p>

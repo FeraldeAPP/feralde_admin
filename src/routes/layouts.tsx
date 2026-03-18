@@ -1,5 +1,5 @@
 import { createRootRouteWithContext, createRoute, Outlet, redirect } from '@tanstack/react-router';
-import AdminShell from '@/components/AdminShell';
+import AdminShell from '@/components/AdminShell.new';
 import AuthGuard from '@/components/AuthGuard';
 import type { AuthState } from '@/stores/auth-store';
 

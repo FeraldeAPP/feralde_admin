@@ -1,5 +1,5 @@
 import { createRoute } from '@tanstack/react-router';
-import BundlesPage from './pages/BundlesPage';
+import BundlesPage from './pages/BundlesPage.new';
 import { adminShellRoute } from '@/routes/layouts';
 
 export const bundlesRoute = createRoute({
