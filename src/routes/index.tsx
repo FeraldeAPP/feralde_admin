@@ -11,7 +11,7 @@ import { promoCodesRoute } from '@/features/promo-codes/promo-codes.routes';
 import { ordersRoutes } from '@/features/orders/orders.routes';
 import { inventoryRoute } from '@/features/inventory/inventory.routes';
 import { distributorsRoutes } from '@/features/distributors/distributors.routes';
-import { resellersRoute } from '@/features/resellers/resellers.routes';
+import { resellersRoute, resellerRegistrationRoute } from '@/features/resellers/resellers.routes';
 import { commissionsRoute } from '@/features/commissions/commissions.routes';
 import { walletsRoute } from '@/features/wallets/wallets.routes';
 import { accountingRoute } from '@/features/accounting/accounting.routes';
@@ -32,6 +32,7 @@ const catchAllRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  resellerRegistrationRoute,
   authGuardRoute.addChildren([
     adminShellRoute.addChildren([
       dashboardRoute,

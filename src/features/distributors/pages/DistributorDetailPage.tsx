@@ -47,6 +47,7 @@ export default function DistributorDetailPage(): React.ReactElement {
   const [showCityForm, setShowCityForm] = useState(false);
   const [reasonInput, setReasonInput] = useState('');
   const [activeAction, setActiveAction] = useState<'reject' | 'suspend' | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const { data: distData, isLoading, isError } = useQuery({
     queryKey: ['distributor', distributorId],
@@ -270,6 +271,44 @@ export default function DistributorDetailPage(): React.ReactElement {
               </div>
             )}
           </section>
+
+          {/* Registration Link */}
+          {dist.referral_code && (
+            <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <h2 className="text-sm font-semibold text-gray-700">Registration Link</h2>
+              <p className="text-xs text-gray-500">
+                Share this link so resellers can apply to join this distributor's network. Resellers may register from any city.
+              </p>
+              {(() => {
+                const registrationUrl = `${window.location.origin}/register/reseller/${dist.referral_code}`;
+                return (
+                  <div className="space-y-2">
+                    <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 flex items-center gap-2">
+                      <span className="flex-1 text-xs font-mono text-gray-700 truncate">{registrationUrl}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(registrationUrl).then(() => {
+                            setLinkCopied(true);
+                            setTimeout(() => setLinkCopied(false), 2000);
+                          });
+                        }}
+                        className="shrink-0 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                      >
+                        {linkCopied ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                    {network && (
+                      <p className="text-xs text-gray-400">
+                        {network.resellers.filter((r) => r.parent_distributor_id !== null).length} direct registrations
+                        {network.assigned_city ? ` + ${network.resellers.filter((r) => r.parent_distributor_id === null).length} city-based` : ''}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </section>
+          )}
 
           {/* Actions */}
           <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">

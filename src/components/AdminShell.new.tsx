@@ -7,6 +7,7 @@ import {
     LayoutGridIcon,
     ShoppingBag01Icon,
     UserGroupIcon,
+    UserMultiple02Icon,
     WarehouseIcon,
     MoneyBag02Icon,
     Chart02Icon,
@@ -364,6 +365,12 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
                                 <SidebarMenuButton render={<Link to="/distributors" onClick={handleNavClick} />} isActive={isActive('/distributors')} tooltip="Distributor" className={btnCls}>
                                     <HugeiconsIcon icon={UserGroupIcon} size={16} />
                                     <span>Distributor</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton render={<Link to="/resellers" onClick={handleNavClick} />} isActive={isActive('/resellers')} tooltip="Resellers" className={btnCls}>
+                                    <HugeiconsIcon icon={UserMultiple02Icon} size={16} />
+                                    <span>Resellers</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
