@@ -7,6 +7,8 @@ import { useState } from 'react';
 
 export default function ResellersPage(): React.ReactElement {
     const [page, setPage] = useState(1);
+    const [focusCity, setFocusCity] = useState<string | null>(null);
+    const [search, setSearch] = useState('');
     const queryClient = useQueryClient();
     const { hasPermission } = useAuth();
     const canUpdate = hasPermission('resellers.update');
@@ -60,15 +62,24 @@ export default function ResellersPage(): React.ReactElement {
                             Loading map...
                         </div>
                     ) : (
-                        <PhilippinesMap stats={cityStats} />
+                        <PhilippinesMap stats={cityStats} focusCity={focusCity} />
                     )}
                 </section>
 
                 {/* City Rankings */}
                 <section className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-100">
-                        <h2 className="text-sm font-semibold text-gray-700">Rankings by City</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Sorted by total resellers</p>
+                    <div className="px-5 py-4 border-b border-gray-100 space-y-3">
+                        <div>
+                            <h2 className="text-sm font-semibold text-gray-700">Rankings by City</h2>
+                            <p className="text-xs text-gray-400 mt-0.5">Click a city to zoom the map</p>
+                        </div>
+                        <input
+                            type="search"
+                            placeholder="Search city..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        />
                     </div>
 
                     {cityLoading ? (
@@ -79,29 +90,35 @@ export default function ResellersPage(): React.ReactElement {
                         </div>
                     ) : (
                         <ol className="divide-y divide-gray-100 max-h-[480px] overflow-y-auto">
-                            {cityStats.map((stat, i) => {
-                                const pct = Math.round((stat.total / (cityStats[0]?.total ?? 1)) * 100);
-                                return (
-                                    <li key={stat.city} className="px-5 py-3 space-y-1">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                <span className="text-xs font-mono text-gray-400 w-5 shrink-0">
-                                                    {i + 1}
+                            {cityStats
+                                .filter((s) => s.city.toLowerCase().includes(search.toLowerCase()))
+                                .map((stat, i) => {
+                                    const pct = Math.round((stat.total / (cityStats[0]?.total ?? 1)) * 100);
+                                    return (
+                                        <li
+                                            key={stat.city}
+                                            className="px-5 py-3 space-y-1 cursor-pointer hover:bg-indigo-50 transition-colors"
+                                            onClick={() => setFocusCity(stat.city)}
+                                        >
+                                            <div className="flex items-center justify-between text-sm">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="text-xs font-mono text-gray-400 w-5 shrink-0">
+                                                        {i + 1}
+                                                    </span>
+                                                    <span className="font-medium text-gray-800 truncate">{stat.city}</span>
+                                                </div>
+                                                <span className="font-bold text-indigo-700 tabular-nums shrink-0 ml-2">
+                                                    {stat.total}
                                                 </span>
-                                                <span className="font-medium text-gray-800 truncate">{stat.city}</span>
                                             </div>
-                                            <span className="font-bold text-indigo-700 tabular-nums shrink-0 ml-2">
-                                                {stat.total}
-                                            </span>
-                                        </div>
-                                        <div className="h-1.5 rounded-full bg-gray-100">
-                                            <div
-                                                className="h-1.5 rounded-full bg-indigo-500"
-                                                style={{ width: `${pct}%` }}
-                                            />
-                                        </div>
-                                    </li>
-                                );
+                                            <div className="h-1.5 rounded-full bg-gray-100">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-indigo-500"
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                        </li>
+                                    );
                             })}
                         </ol>
                     )}

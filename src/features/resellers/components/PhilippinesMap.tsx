@@ -1,8 +1,8 @@
 import type { ResellerCityStat } from '@/features/resellers/types';
-import { MapContainer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, GeoJSON, Marker, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { Feature, GeoJsonObject } from 'geojson';
-import { useEffect, useRef, useState } from 'react';
+import type { Feature, FeatureCollection, GeoJsonObject } from 'geojson';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Maps reseller city names (lowercase) to GADM Level 2 NAME_2 values
 const CITY_TO_GADM: Record<string, string> = {
@@ -29,6 +29,26 @@ const CITY_TO_GADM: Record<string, string> = {
     'santa rosa': 'SantaRosa', 'bacoor': 'Bacoor', 'imus': 'Imus',
 };
 
+const DEFAULT_STYLE: L.PathOptions = {
+    fillOpacity: 0,
+    color:       'transparent',
+    weight:      0,
+};
+
+const HOVER_STYLE: L.PathOptions = {
+    fillColor:   '#3b82f6',
+    fillOpacity: 0.2,
+    color:       '#1d4ed8',
+    weight:      1.5,
+};
+
+const SELECTED_STYLE: L.PathOptions = {
+    fillColor:   '#3b82f6',
+    fillOpacity: 0.3,
+    color:       '#1e3a8a',
+    weight:      2,
+};
+
 const CITY_DISPLAY: Record<string, string> = {
     'QuezonCity': 'Quezon City', 'MakatiCity': 'Makati City', 'PasigCity': 'Pasig City',
     'PasayCity': 'Pasay City', 'KalookanCity': 'Caloocan City', 'LasPiñas': 'Las Piñas',
@@ -51,20 +71,11 @@ function displayCity(gadmName: string): string {
     return CITY_DISPLAY[gadmName] ?? gadmName;
 }
 
-const PALETTE = [
-    '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c',
-    '#3498db', '#9b59b6', '#e91e8c', '#27ae60', '#16a085',
-    '#2980b9', '#8e44ad', '#d35400', '#c0392b', '#7f8c8d',
-    '#f39c12', '#00bcd4', '#4caf50', '#ff5722', '#795548',
-];
-
-function cityColor(index: number): string {
-    return PALETTE[(index * 7) % PALETTE.length];
-}
-
 interface GeoProperties {
     name: string;
     province: string;
+    cx?: number;
+    cy?: number;
 }
 
 interface SelectedCity {
@@ -72,6 +83,63 @@ interface SelectedCity {
     displayName: string;
     province: string;
     count: number;
+}
+
+interface CityMarkersLayerProps {
+    cityCounts: Record<string, number>;
+    centroids:  Record<string, [number, number]>;
+    onPin: (gadmName: string, pos: [number, number]) => void;
+}
+
+function CityMarkersLayer({ cityCounts, centroids, onPin }: CityMarkersLayerProps): React.ReactElement {
+    const map = useMap();
+
+    return (
+        <>
+            {Object.entries(cityCounts).map(([gadmName, count]) => {
+                const pos = centroids[gadmName];
+                if (!pos) return null;
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div style="width:28px;height:28px;background:#4f46e5;color:#fff;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;font-family:sans-serif">${String(count)}</div>`,
+                    iconSize:   [28, 28],
+                    iconAnchor: [14, 14],
+                });
+                return (
+                    <Marker
+                        key={gadmName}
+                        position={pos}
+                        icon={icon}
+                        eventHandlers={{
+                            click: () => {
+                                map.flyTo(pos, 13, { duration: 1.2 });
+                                onPin(gadmName, pos);
+                            },
+                        }}
+                    />
+                );
+            })}
+        </>
+    );
+}
+
+// Flies to a city when focusCity changes
+interface FocusControllerProps {
+    focusCity:  string | null | undefined;
+    cityMeta:   Record<string, { pos: [number, number]; province: string }>;
+}
+
+function FocusController({ focusCity, cityMeta }: FocusControllerProps): null {
+    const map = useMap();
+    useEffect(() => {
+        if (!focusCity) return;
+        const gadmName = CITY_TO_GADM[focusCity.trim().toLowerCase()];
+        if (!gadmName) return;
+        const meta = cityMeta[gadmName];
+        if (!meta) return;
+        map.flyTo(meta.pos, 13, { duration: 1.2 });
+    }, [focusCity, map, cityMeta]);
+    return null;
 }
 
 // Fits the map to Philippines bounds on mount
@@ -84,10 +152,11 @@ function FitPhilippines(): null {
 }
 
 interface PhilippinesMapProps {
-    stats: ResellerCityStat[];
+    stats:      ResellerCityStat[];
+    focusCity?: string | null;
 }
 
-export default function PhilippinesMap({ stats }: PhilippinesMapProps): React.ReactElement {
+export default function PhilippinesMap({ stats, focusCity }: PhilippinesMapProps): React.ReactElement {
     const [selected, setSelected] = useState<SelectedCity | null>(null);
     const geoJsonRef = useRef<L.GeoJSON | null>(null);
     const [geoData, setGeoData] = useState<GeoJsonObject | null>(null);
@@ -109,24 +178,35 @@ export default function PhilippinesMap({ stats }: PhilippinesMapProps): React.Re
             .catch(() => null);
     }, []);
 
+    // Build gadmName -> { pos, province } map from GeoJSON cx/cy
+    const cityMeta = useMemo((): Record<string, { pos: [number, number]; province: string }> => {
+        if (!geoData) return {};
+        const result: Record<string, { pos: [number, number]; province: string }> = {};
+        const fc = geoData as FeatureCollection;
+        for (const f of fc.features ?? []) {
+            const p = f.properties as GeoProperties;
+            if (p.name && p.cx !== undefined && p.cy !== undefined) {
+                result[p.name] = { pos: [p.cy, p.cx], province: p.province ?? '' };
+            }
+        }
+        return result;
+    }, [geoData]);
+
+    const centroids = useMemo((): Record<string, [number, number]> => {
+        const result: Record<string, [number, number]> = {};
+        for (const [name, meta] of Object.entries(cityMeta)) result[name] = meta.pos;
+        return result;
+    }, [cityMeta]);
+
     // Style each feature
     function style(_feature: Feature | undefined): L.PathOptions {
         const gadmName = _feature?.properties?.name as string | undefined ?? '';
-        const count    = cityCounts[gadmName] ?? 0;
-        const idx      = (_feature as { _index?: number })?._index ?? 0;
-        return {
-            fillColor:   count > 0 ? '#1d4ed8' : cityColor(idx),
-            fillOpacity: count > 0 ? 0.85 : 0.9,
-            color:       '#111827',
-            weight:      0.7,
-        };
+        if (gadmName && selected?.gadmName === gadmName) return SELECTED_STYLE;
+        return DEFAULT_STYLE;
     }
 
-    // Bind click + index to each feature layer
-    function onEachFeature(feature: Feature, layer: L.Layer, index: number): void {
-        // Store index on feature for color lookup
-        (feature as { _index?: number })._index = index;
-
+    // Bind click + hover to each feature layer
+    function onEachFeature(feature: Feature, layer: L.Layer): void {
         const props       = feature.properties as GeoProperties;
         const gadmName    = props.name;
         const displayName = displayCity(gadmName);
@@ -135,42 +215,24 @@ export default function PhilippinesMap({ stats }: PhilippinesMapProps): React.Re
 
         (layer as L.Path).on('click', () => {
             setSelected((prev) =>
-                prev?.gadmName === gadmName ? null : {
-                    gadmName, displayName, province, count,
-                }
+                prev?.gadmName === gadmName ? null : { gadmName, displayName, province, count }
             );
-            // Highlight selected
             if (geoJsonRef.current) {
                 geoJsonRef.current.eachLayer((l) => {
                     const path = l as L.Path;
                     const f    = (path as unknown as { feature?: Feature }).feature;
                     const name = f?.properties?.name as string | undefined;
-                    if (name === gadmName) {
-                        path.setStyle({ color: '#1e3a8a', weight: 2.5, fillColor: '#fef08a', fillOpacity: 1 });
-                    } else {
-                        const i   = (f as { _index?: number })?._index ?? 0;
-                        const cnt = cityCounts[name ?? ''] ?? 0;
-                        path.setStyle({
-                            color:       '#111827',
-                            weight:      0.7,
-                            fillColor:   cnt > 0 ? '#1d4ed8' : cityColor(i),
-                            fillOpacity: cnt > 0 ? 0.85 : 0.9,
-                        });
-                    }
+                    path.setStyle(name === gadmName ? SELECTED_STYLE : DEFAULT_STYLE);
                 });
             }
         });
 
         (layer as L.Path).on('mouseover', function (this: L.Path) {
-            if (selected?.gadmName !== gadmName) {
-                this.setStyle({ weight: 1.5, color: '#374151' });
-            }
+            if (selected?.gadmName !== gadmName) this.setStyle(HOVER_STYLE);
         });
 
         (layer as L.Path).on('mouseout', function (this: L.Path) {
-            if (selected?.gadmName !== gadmName) {
-                this.setStyle({ weight: 0.7, color: '#111827' });
-            }
+            if (selected?.gadmName !== gadmName) this.setStyle(DEFAULT_STYLE);
         });
     }
 
@@ -183,8 +245,7 @@ export default function PhilippinesMap({ stats }: PhilippinesMapProps): React.Re
                     <div className="absolute top-3 right-3 z-[1000] w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">City / Municipality</p>
-                                <p className="text-sm font-bold text-gray-900 leading-tight mt-0.5 truncate">{selected.displayName}</p>
+                                <p className="text-sm font-bold text-gray-900 leading-tight truncate">{selected.displayName}</p>
                                 <p className="text-xs text-gray-400 truncate">{selected.province}</p>
                             </div>
                             <button
@@ -211,23 +272,37 @@ export default function PhilippinesMap({ stats }: PhilippinesMapProps): React.Re
                 <MapContainer
                     center={[12.9, 121.8]}
                     zoom={6}
-                    style={{ height: '100%', width: '100%', background: '#ffffff' }}
+                    minZoom={6}
+                    maxBounds={[[4.0, 115.5], [21.8, 128.0]]}
+                    maxBoundsViscosity={1.0}
+                    style={{ height: '100%', width: '100%', background: '#f8fafc' }}
                     zoomControl
                 >
+                    <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
                     <FitPhilippines />
+                    <FocusController focusCity={focusCity} cityMeta={cityMeta} />
                     {geoData && (
                         <GeoJSON
                             key="ph-cities"
                             ref={geoJsonRef}
                             data={geoData}
                             style={style}
-                            onEachFeature={(feature, layer) => {
-                                const data = geoData as { features?: Feature[] };
-                                const idx  = data.features?.indexOf(feature) ?? 0;
-                                onEachFeature(feature, layer, idx);
-                            }}
+                            onEachFeature={onEachFeature}
                         />
                     )}
+                    <CityMarkersLayer
+                        cityCounts={cityCounts}
+                        centroids={centroids}
+                        onPin={(gadmName, _pos) => {
+                            const displayName = displayCity(gadmName);
+                            const count       = cityCounts[gadmName] ?? 0;
+                            const province    = cityMeta[gadmName]?.province ?? '';
+                            setSelected({ gadmName, displayName, province, count });
+                        }}
+                    />
                 </MapContainer>
             </div>
         </div>
