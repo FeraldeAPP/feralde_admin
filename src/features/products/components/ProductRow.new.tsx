@@ -1,4 +1,4 @@
- import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@tanstack/react-router';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { MoreHorizontalIcon } from '@hugeicons/core-free-icons';
@@ -7,9 +7,10 @@ import type { Product } from '../types';
 
 interface Props {
     product: Product;
+    isOnlyActions?: boolean;
 }
 
-export default function ProductRow({ product }: Props) {
+export default function ProductRow({ product, isOnlyActions }: Props) {
     const { hasPermission } = useAuth();
     const canUpdate = hasPermission('products.update');
     const canDelete = hasPermission('products.delete');
@@ -26,7 +27,7 @@ export default function ProductRow({ product }: Props) {
     }))
     : null;
 
-    // Close menu on outside click
+     // Close menu on outside click
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -36,6 +37,53 @@ export default function ProductRow({ product }: Props) {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const actionMenu = (
+        <div className="relative inline-block" ref={menuRef}>
+            <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+            >
+                <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
+            </button>
+            {menuOpen && (
+                <div className="absolute right-0 top-8 z-20 w-36 bg-white border border-stone-200 rounded-lg shadow-md py-1">
+                    <Link
+                        to="/products/$id"
+                        params={{ id: String(product.id) }}
+                        className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                        onClick={() => setMenuOpen(false)}
+                    >
+                        View
+                    </Link>
+                    {canUpdate && (
+                        <Link
+                            to="/products/$id/edit"
+                            params={{ id: String(product.id) }}
+                            className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Edit
+                        </Link>
+                    )}
+                    {canDelete && (
+                        <button
+                            type="button"
+                            className="block w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Delete
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+
+    if (isOnlyActions) {
+        return actionMenu;
+    }
 
     return (
         <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
@@ -77,46 +125,7 @@ export default function ProductRow({ product }: Props) {
 
             {/* Action */}
             <td className="py-3.5 text-right">
-                <div className="relative inline-block" ref={menuRef}>
-                    <button
-                        type="button"
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-                    >
-                        <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
-                    </button>
-                    {menuOpen && (
-                        <div className="absolute right-0 top-8 z-20 w-36 bg-white border border-stone-200 rounded-lg shadow-md py-1">
-                            <Link
-                                to="/products/$id"
-                                params={{ id: String(product.id) }}
-                                className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                View
-                            </Link>
-                            {canUpdate && (
-                                <Link
-                                    to="/products/$id/edit"
-                                    params={{ id: String(product.id) }}
-                                    className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    Edit
-                                </Link>
-                            )}
-                            {canDelete && (
-                                <button
-                                    type="button"
-                                    className="block w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    Delete
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+                {actionMenu}
             </td>
         </tr>
     );

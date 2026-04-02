@@ -21,7 +21,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ProductFilters } from '../types';
+import {
+    useReactTable,
+    getCoreRowModel,
+    flexRender,
+    createColumnHelper,
+} from '@tanstack/react-table';
+import type { Product, ProductFilters } from '../types';
+
+const columnHelper = createColumnHelper<Product>();
 
 export default function ProductsPage() {
     const { hasPermission } = useAuth();
@@ -61,6 +69,80 @@ export default function ProductsPage() {
         pageNumbers.push(totalPages);
     }
 
+    const columns = [
+        columnHelper.accessor('name', {
+            header: () => (
+                <div className="flex items-center gap-1">
+                    Product Name
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-300">
+                        <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                </div>
+            ),
+            cell: (info) => {
+                const product = info.row.original;
+                const primaryImage = product.media?.find((m) => m.is_primary)?.url ?? product.media?.[0]?.url;
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md overflow-hidden bg-stone-100 shrink-0">
+                            {primaryImage ? (
+                                <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-stone-200" />
+                            )}
+                        </div>
+                        <p className="text-sm text-stone-800 font-medium truncate max-w-[240px]">{product.name}</p>
+                    </div>
+                );
+            },
+        }),
+        columnHelper.accessor('category.name', {
+            id: 'collection',
+            header: 'Collection',
+            cell: (info) => <span className="text-sm text-stone-500">{info.getValue() ?? '—'}</span>,
+        }),
+        columnHelper.display({
+            id: 'variants',
+            header: 'Size Variants',
+            cell: (info) => {
+                const product = info.row.original;
+                const activeVariants = product.variants?.filter((v: any) => v.is_active) ?? [];
+                const sizes = activeVariants.map((v) => v.size ?? v.name).filter(Boolean).join(' / ');
+                return <span className="text-sm text-stone-500">{sizes || '—'}</span>;
+            },
+        }),
+        columnHelper.display({
+            id: 'price',
+            header: 'Price (₱)',
+            cell: (info) => {
+                const product = info.row.original;
+                const activeVariants = product.variants?.filter((v: any) => v.is_active) ?? [];
+                const lowestPrice = activeVariants.length > 0
+                    ? Math.min(...activeVariants.map((v) => {
+                        const retail = v.pricing?.find((p) => p.tier === 'RETAIL' && p.is_active);
+                        return retail ? parseFloat(retail.price) : 0;
+                    }))
+                    : null;
+                return (
+                    <span className="text-sm text-stone-800 font-medium">
+                        {lowestPrice !== null ? `₱${lowestPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
+                    </span>
+                );
+            },
+        }),
+        columnHelper.display({
+            id: 'actions',
+            header: () => <div className="text-right">Action</div>,
+            cell: (info) => <ProductRow product={info.row.original} isOnlyActions />,
+        }),
+    ];
+
+    const table = useReactTable({
+        data: result?.products ?? [],
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+    });
+
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const lastUpdated = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 
@@ -77,25 +159,25 @@ export default function ProductsPage() {
             <div className="flex items-start justify-between gap-2">
                 <p className="text-xs text-stone-400">{today}</p>
                 <div className="relative">
-    <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
-    <DropdownMenuTrigger className="flex items-center gap-1.5 border border-stone-200 text-stone-600 shrink-0 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8">
-        <span className="hidden sm:inline">Export As</span>
-        <span className="hidden sm:inline w-px h-3.5 bg-stone-300" />
-        <HugeiconsIcon 
-            icon={ArrowDown01Icon} 
-            size={14} 
-            className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`}
-        />
-    </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" side="bottom" className="w-29 min-w-0">
-            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('pdf')}>PDF</DropdownMenuItem>
-            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('docx')}>.Docx</DropdownMenuItem>
-            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('svg')}>SVG</DropdownMenuItem>
-            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('html')}>HTML</DropdownMenuItem>
-        </DropdownMenuContent>
-    </DropdownMenu>
-</div>
-</div>
+                    <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
+                        <DropdownMenuTrigger className="flex items-center gap-1.5 border border-stone-200 text-stone-600 shrink-0 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8">
+                            <span className="hidden sm:inline">Export As</span>
+                            <span className="hidden sm:inline w-px h-3.5 bg-stone-300" />
+                            <HugeiconsIcon
+                                icon={ArrowDown01Icon}
+                                size={14}
+                                className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`}
+                            />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="bottom" className="w-29 min-w-0">
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('pdf')}>PDF</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('docx')}>.Docx</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('svg')}>SVG</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('html')}>HTML</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
 
             {/* Page Title */}
             <h1 className="text-xl sm:text-2xl font-bold text-stone-900">All Products</h1>
@@ -126,28 +208,28 @@ export default function ProductsPage() {
                             <HugeiconsIcon icon={Add01Icon} size={14} />
                         </Link>
                     )}
-                        <Button variant="outline" size="sm" className="flex items-center gap-1.5 border-stone-200 text-stone-600">
-    <span className="hidden sm:inline">Import</span>
-    <HugeiconsIcon icon={Upload06Icon} size={14} className="rotate-180" />
-</Button>
-<DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
-    <DropdownMenuTrigger className="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 border border-stone-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 font-medium">
-        <span className="hidden sm:inline">{activeFilter ?? 'Filter'}</span>
-        <HugeiconsIcon 
-            icon={FilterMailIcon} 
-            size={15} 
-            className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : 'rotate-0'}`}
-        />
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start" side="bottom" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0">
-        <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Price')}>By Price</DropdownMenuItem>
-        <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Name')}>By Name</DropdownMenuItem>
-        <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Bundle')}>By Bundle</DropdownMenuItem>
-        <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Category')}>By Category</DropdownMenuItem>
-    </DropdownMenuContent>
-</DropdownMenu>
-                    </div>
+                    <Button variant="outline" size="sm" className="flex items-center gap-1.5 border-stone-200 text-stone-600">
+                        <span className="hidden sm:inline">Import</span>
+                        <HugeiconsIcon icon={Upload06Icon} size={14} className="rotate-180" />
+                    </Button>
+                    <DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
+                        <DropdownMenuTrigger className="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 border border-stone-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 font-medium">
+                            <span className="hidden sm:inline">{activeFilter ?? 'Filter'}</span>
+                            <HugeiconsIcon
+                                icon={FilterMailIcon}
+                                size={15}
+                                className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : 'rotate-0'}`}
+                            />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" side="bottom" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0">
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Price')}>By Price</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Name')}>By Name</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Bundle')}>By Bundle</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Category')}>By Category</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
+            </div>
 
             {/* Tabs — real navigation */}
             <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
@@ -156,11 +238,10 @@ export default function ProductsPage() {
                         <Link
                             key={tab.label}
                             to={tab.to}
-                            className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                                location.pathname === tab.to
-                                    ? 'border-stone-900 text-stone-900'
-                                    : 'border-transparent text-stone-400 hover:text-stone-700'
-                            }`}
+                            className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${location.pathname === tab.to
+                                ? 'border-stone-900 text-stone-900'
+                                : 'border-transparent text-stone-400 hover:text-stone-700'
+                                }`}
                         >
                             {tab.label}
                         </Link>
@@ -188,31 +269,52 @@ export default function ProductsPage() {
                     <div className="overflow-x-auto -mx-4 sm:mx-0">
                         <table className="min-w-full text-sm">
                             <thead>
-                                <tr className="border-b border-stone-100">
-                                    <th className="pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 pl-4 sm:pl-0">
-                                        <div className="flex items-center gap-1">
-                                            Product Name
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-300">
-                                                <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
-                                            </svg>
-                                        </div>
-                                    </th>
-                                    <th className="pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 hidden sm:table-cell">Collection</th>
-                                    <th className="pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 hidden md:table-cell">Size Variants</th>
-                                    <th className="pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6">Price (₱)</th>
-                                    <th className="pb-3 text-right text-xs font-medium text-stone-400 pr-4 sm:pr-0">Action</th>
-                                </tr>
+                                {table.getHeaderGroups().map(headerGroup => (
+                                    <tr key={headerGroup.id} className="border-b border-stone-100">
+                                        {headerGroup.headers.map(header => (
+                                            <th
+                                                key={header.id}
+                                                className={`pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 
+                                                    ${header.id === 'name' ? 'pl-4 sm:pl-0' : ''}
+                                                    ${header.id === 'collection' ? 'hidden sm:table-cell' : ''}
+                                                    ${header.id === 'variants' ? 'hidden md:table-cell' : ''}
+                                                    ${header.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
+                                                `}
+                                            >
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(
+                                                        header.column.columnDef.header,
+                                                        header.getContext()
+                                                    )}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                ))}
                             </thead>
                             <tbody>
-                                {result.products.length === 0 ? (
+                                {table.getRowModel().rows.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-16 text-center text-stone-400">
+                                        <td colSpan={columns.length} className="py-16 text-center text-stone-400">
                                             No products found
                                         </td>
                                     </tr>
                                 ) : (
-                                    result.products.map((product) => (
-                                        <ProductRow key={product.id} product={product} />
+                                    table.getRowModel().rows.map(row => (
+                                        <tr key={row.id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                                            {row.getVisibleCells().map(cell => (
+                                                <td
+                                                    key={cell.id}
+                                                    className={`py-3.5 pr-6 
+                                                        ${cell.column.id === 'collection' ? 'hidden sm:table-cell' : ''}
+                                                        ${cell.column.id === 'variants' ? 'hidden md:table-cell' : ''}
+                                                        ${cell.column.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
+                                                    `}
+                                                >
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </td>
+                                            ))}
+                                        </tr>
                                     ))
                                 )}
                             </tbody>
@@ -241,11 +343,10 @@ export default function ProductsPage() {
                                         key={n}
                                         type="button"
                                         onClick={() => setPage(n)}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-medium transition-colors ${
-                                            currentPage === n
-                                                ? 'bg-stone-900 text-white'
-                                                : 'border border-stone-200 text-stone-500 hover:bg-stone-50'
-                                        }`}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-medium transition-colors ${currentPage === n
+                                            ? 'bg-stone-900 text-white'
+                                            : 'border border-stone-200 text-stone-500 hover:bg-stone-50'
+                                            }`}
                                     >
                                         {n}
                                     </button>

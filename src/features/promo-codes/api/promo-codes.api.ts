@@ -18,7 +18,12 @@ export interface CreatePromoCodePayload {
 
 export type UpdatePromoCodePayload = Partial<CreatePromoCodePayload>;
 
-export async function getPromoCodes(params?: { page?: number; per_page?: number }): Promise<ApiResponse<PromoCodeListData>> {
+export async function getPromoCodes(params?: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    is_active?: boolean;
+}): Promise<ApiResponse<PromoCodeListData>> {
     const { data } = await client.get<ApiResponse<PromoCodeListData>>('/promo-codes', { params });
     return data;
 }
