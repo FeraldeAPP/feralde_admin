@@ -16,8 +16,11 @@ import {
   Calendar03Icon,
   ArrowDown01Icon,
   FilterMailIcon,
-  Upload06Icon
+  Upload06Icon,
+  CouponPercentIcon,
+  Tick01Icon,
 } from '@hugeicons/core-free-icons';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -617,19 +620,37 @@ export default function PromoCodesPage(): React.ReactElement {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-6 border-b">
+        {/* Tabs Row */}
+        <div className="flex items-center gap-4 text-xs font-bold border-b border-stone-100">
           <button
             onClick={() => { setStatus('all'); setPage(1); }}
-            className={`pb-4 text-sm font-semibold transition-all relative ${status === 'all' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+            className={cn(
+              'pb-2 transition-colors flex items-center gap-1.5',
+              status === 'all' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400 hover:text-stone-600'
+            )}
           >
+            <HugeiconsIcon icon={CouponPercentIcon} size={12} />
             All Promotions
+            {result && status === 'all' && (
+              <span className="ml-1 text-[10px] font-bold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                {result.pagination.total ?? 0}
+              </span>
+            )}
           </button>
           <button
             onClick={() => { setStatus('active'); setPage(1); }}
-            className={`pb-4 text-sm font-semibold transition-all relative ${status === 'active' ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+            className={cn(
+              'pb-2 transition-colors flex items-center gap-1.5',
+              status === 'active' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400 hover:text-stone-600'
+            )}
           >
+            <HugeiconsIcon icon={Tick01Icon} size={12} />
             Active
+            {result && status === 'active' && (
+              <span className="ml-1 text-[10px] font-bold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                {result.pagination.total ?? 0}
+              </span>
+            )}
           </button>
         </div>
 

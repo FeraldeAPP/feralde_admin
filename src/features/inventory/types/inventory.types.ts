@@ -1,10 +1,16 @@
 import type { Pagination } from '@/lib/api/types';
 
+import type { ProductMedia } from '../../products/types/products.types.ts';
+
 export interface InventoryVariant {
     id: number;
     sku: string;
     name: string;
-    product?: { id: number; name: string };
+    product?: { 
+        id: number; 
+        name: string;
+        media?: ProductMedia[];
+    };
 }
 
 export interface InventoryWarehouse {
@@ -30,4 +36,11 @@ export interface InventoryItem {
 export interface InventoryListData {
     inventory: InventoryItem[];
     pagination: Pagination;
+}
+
+export interface InventoryFilters {
+    page?: number;
+    per_page?: number;
+    warehouse_id?: number;
+    search?: string;
 }

@@ -6,13 +6,10 @@ import type {
     CreateUserPayload,
     UpdateUserPayload,
     AssignRolesPayload,
+    UserFilters,
 } from '../types';
 
-export async function getUsers(params?: {
-    search?: string;
-    per_page?: number;
-    page?: number;
-}): Promise<ApiResponse<UserListData>> {
+export async function getUsers(params?: UserFilters): Promise<ApiResponse<UserListData>> {
     const { data } = await client.get<ApiResponse<UserListData>>('/users', { params });
     return data;
 }

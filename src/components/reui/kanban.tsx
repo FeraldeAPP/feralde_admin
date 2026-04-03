@@ -132,6 +132,7 @@ function Kanban<T>({
   const columns = value
   const setColumns = onValueChange
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+  const [originalContainer, setOriginalContainer] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -169,14 +170,14 @@ function Kanban<T>({
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id)
-  }, [])
+    // Cache the original container so handleDragEnd can report the *source* column
+    // even after handleDragOver has already moved the item.
+    const container = findContainer(event.active.id)
+    setOriginalContainer(container ?? null)
+  }, [findContainer])
 
   const handleDragOver = useCallback(
     (event: DragOverEvent) => {
-      if (onMove) {
-        return
-      }
-
       const { active, over } = event
       if (!over) return
 
@@ -237,6 +238,7 @@ function Kanban<T>({
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null)
+    setOriginalContainer(null)
   }, [])
 
   const handleDragEnd = useCallback(
@@ -248,11 +250,15 @@ function Kanban<T>({
 
       // Handle item move callback
       if (onMove && !isColumn(active.id)) {
-        const activeContainer = findContainer(active.id)
+        // Use originalContainer as the source since handleDragOver may have
+        // already relocated the item by the time dragEnd fires.
+        const activeContainer = originalContainer ?? findContainer(active.id)
         const overContainer = findContainer(over.id)
 
         if (activeContainer && overContainer) {
-          const activeIndex = columns[activeContainer].findIndex(
+          // After handleDragOver the item is already in overContainer;
+          // find its current index there.
+          const activeIndex = columns[activeContainer === overContainer ? activeContainer : overContainer].findIndex(
             (item: T) => getItemValue(item) === active.id
           )
           const overIndex = isColumn(over.id)
@@ -269,6 +275,8 @@ function Kanban<T>({
             overIndex,
           })
         }
+        setOriginalContainer(null)
+        setActiveId(null)
         return
       }
 
@@ -324,6 +332,7 @@ function Kanban<T>({
       isColumn,
       setColumns,
       onMove,
+      originalContainer,
     ]
   )
 

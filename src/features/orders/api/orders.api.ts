@@ -2,7 +2,13 @@ import { client } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
 import type { Order, OrderListData, OrderStatus } from '../types';
 
-export async function getOrders(params?: { page?: number; per_page?: number; status?: string }): Promise<ApiResponse<OrderListData>> {
+export async function getOrders(params?: {
+    page?: number;
+    per_page?: number;
+    status?: string;
+    order_type?: 'shop' | 'distributor';
+    search?: string;
+}): Promise<ApiResponse<OrderListData>> {
     const { data } = await client.get<ApiResponse<OrderListData>>('/orders', { params });
     return data;
 }

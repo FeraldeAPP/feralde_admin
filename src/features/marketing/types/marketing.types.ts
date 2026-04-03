@@ -1,6 +1,5 @@
 import type { Pagination } from '@/lib/api/types';
-
-export type AssetType = 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'PDF';
+import { z } from 'zod';
 
 export interface MarketingAsset {
     id: number;
@@ -19,21 +18,21 @@ export interface AssetListData {
     pagination: Pagination;
 }
 
-export interface Announcement {
-    id: number;
-    title: string;
-    body: string;
-    image_url: string | null;
-    target_roles: string[] | null;
-    is_pinned: boolean;
-    is_published: boolean;
-    published_at: string | null;
-    expires_at: string | null;
-    created_at: string;
-    updated_at: string;
-}
+export type AssetType = 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'PDF';
 
-export interface AnnouncementListData {
-    announcements: Announcement[];
-    pagination: Pagination;
+export const marketingSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().nullable().optional(),
+    type: z.enum(['IMAGE', 'VIDEO', 'DOCUMENT', 'PDF']).optional(),
+    is_active: z.boolean().optional(),
+});
+
+export type MarketingFormValues = z.infer<typeof marketingSchema>;
+
+export type MarketingModalState = null | 'create' | MarketingAsset;
+
+export interface AssetFormProps {
+    initial: MarketingAsset | null;
+    onClose: () => void;
+    onSaved: () => void;
 }

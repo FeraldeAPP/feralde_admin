@@ -1,9 +1,8 @@
-import { getOrders } from '@/features/orders/api';
-import type { Order, OrderStatus } from '@/features/orders/types';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
+import type { Order, OrderStatus } from '@/features/orders/types';
+import { useOrders, useUpdateOrderStatus } from '@/features/orders/hooks/use-orders';
 import {
     Add01Icon,
     Search01Icon,
@@ -13,7 +12,10 @@ import {
     MoreHorizontalIcon,
     ListViewIcon,
     KanbanIcon,
+    ArrowLeft01Icon,
     ArrowRight01Icon,
+    UserIcon,
+    Store02Icon,
 } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,43 +30,197 @@ import {
     KanbanBoard,
     KanbanColumn,
     KanbanColumnContent,
+    KanbanItem,
+    KanbanItemHandle,
 } from '@/components/reui/kanban';
+import {
+    useReactTable,
+    getCoreRowModel,
+    flexRender,
+    createColumnHelper,
+} from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 
+const columnHelper = createColumnHelper<Order>();
+
 const STATUS_COLORS: Record<string, { text: string; bg: string; dot: string; label: string }> = {
-    NEW: { text: 'text-green-600', bg: 'bg-green-50', dot: 'bg-green-500', label: 'Order Place' },
+    NEW: { text: 'text-green-600', bg: 'bg-green-50', dot: 'bg-green-500', label: 'Order Placed' },
     PREPARING: { text: 'text-orange-600', bg: 'bg-orange-50', dot: 'bg-orange-500', label: 'Preparing' },
     PACKED: { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', label: 'Ready to Pick Up' },
     LOGISTICS: { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', label: 'For Fulfillment' },
 };
 
 const KANBAN_COLUMNS = [
-    { id: 'NEW', label: 'New Orders', statuses: ['PENDING'] },
-    { id: 'PREPARING', label: 'Preparing', statuses: ['CONFIRMED', 'PROCESSING'] },
-    { id: 'PACKED', label: 'Packed', statuses: [] },
-    { id: 'LOGISTICS', label: 'Logistics', statuses: ['SHIPPED'] },
+    { id: 'NEW', label: 'New Orders' },
+    { id: 'PREPARING', label: 'Preparing' },
+    { id: 'PACKED', label: 'Packed' },
+    { id: 'LOGISTICS', label: 'Logistics' },
 ];
+
+const STATUS_MAP: Record<string, OrderStatus> = {
+    NEW: 'PENDING',
+    PREPARING: 'CONFIRMED',
+    PACKED: 'PROCESSING',
+    LOGISTICS: 'SHIPPED',
+};
+
+/** Get the Kanban column key for a given order status */
+function getKanbanColumn(status: OrderStatus): string {
+    switch (status) {
+        case 'PENDING':    return 'NEW';
+        case 'CONFIRMED':  return 'PREPARING';
+        case 'PROCESSING': return 'PACKED';
+        case 'SHIPPED':    return 'LOGISTICS';
+        default:           return 'PREPARING';
+    }
+}
+
+/** Resolve a display name for an order depending on its type */
+function getOrderDisplayName(order: Order): string {
+    if (order.distributor) {
+        return `${order.distributor.distributor_code}${order.distributor.assigned_city ? ` · ${order.distributor.assigned_city}` : ''}`;
+    }
+    if (order.customer_id) {
+        // customer_id is a user ID string from auth service; show it shortened
+        return `Customer #${order.customer_id.slice(-6)}`;
+    }
+    return 'Walk-in / Admin';
+}
 
 export default function OrdersPage(): React.ReactElement {
     const { hasPermission } = useAuth();
-    const [page] = useState(1);
+    const [page, setPage] = useState(1);
     const [status] = useState<OrderStatus | ''>('');
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
-    const [activeTab, setActiveTab] = useState<'shop' | 'distributor'>('distributor');
+    const [activeTab, setActiveTab] = useState<'shop' | 'distributor'>('shop');
     const [search, setSearch] = useState('');
     const [exportOpen, setExportOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['orders', page, status],
-        queryFn: () => getOrders({ page, per_page: 50, ...(status ? { status } : {}) }),
+    // Reset page to 1 when switching tabs
+    const handleTabChange = (tab: 'shop' | 'distributor') => {
+        setActiveTab(tab);
+        setPage(1);
+    };
+
+    const { data, isLoading, isError } = useOrders({
+        page,
+        per_page: 50,
+        status: status || undefined,
+        order_type: activeTab,
+    });
+
+    const result = data?.success ? data.data : null;
+    const orders = result?.orders ?? [];
+    const totalPages = result?.pagination.last_page ?? 1;
+    const currentPage = result?.pagination.current_page ?? page;
+
+    const pageNumbers: (number | 'ellipsis')[] = [];
+    if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+        pageNumbers.push(1);
+        if (currentPage > 3) pageNumbers.push('ellipsis');
+        for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+            pageNumbers.push(i);
+        }
+        if (currentPage < totalPages - 2) pageNumbers.push('ellipsis');
+        pageNumbers.push(totalPages);
+    }
+
+    const columns = [
+        columnHelper.accessor('order_number', {
+            header: 'Order Number',
+            cell: (info) => (
+                <span className="font-mono font-medium text-stone-900 text-xs">
+                    {info.getValue()}
+                </span>
+            ),
+        }),
+        columnHelper.display({
+            id: 'customer_or_distributor',
+            header: activeTab === 'shop' ? 'Customer' : 'Distributor',
+            cell: (info) => {
+                const order = info.row.original;
+                const name = getOrderDisplayName(order);
+                const Icon = order.distributor ? Store02Icon : UserIcon;
+                return (
+                    <div className="flex items-center gap-1.5">
+                        <HugeiconsIcon icon={Icon} size={12} className="text-stone-400 shrink-0" />
+                        <span className="text-xs text-stone-700 font-medium truncate max-w-[140px]">{name}</span>
+                    </div>
+                );
+            },
+        }),
+        columnHelper.accessor('status', {
+            header: 'Status',
+            cell: (info) => {
+                const s = info.getValue();
+                let config = STATUS_COLORS.NEW;
+                if (s === 'CONFIRMED') config = STATUS_COLORS.PREPARING;
+                if (s === 'PROCESSING') config = STATUS_COLORS.PACKED;
+                if (s === 'SHIPPED') config = STATUS_COLORS.LOGISTICS;
+
+                return (
+                    <span className={cn('inline-flex text-[10px] px-2 py-0.5 rounded-md font-bold border', config.bg, config.text, 'border-stone-100')}>
+                        {s}
+                    </span>
+                );
+            },
+        }),
+        columnHelper.accessor('payment_status', {
+            header: 'Payment',
+            cell: (info) => (
+                <span className="inline-flex text-[10px] px-2 py-0.5 rounded-md font-bold bg-stone-50 text-stone-600 border border-stone-100">
+                    {info.getValue()}
+                </span>
+            ),
+        }),
+        columnHelper.accessor('total_amount', {
+            header: () => <div className="text-right">Total</div>,
+            cell: (info) => (
+                <div className="text-right font-medium text-stone-900 text-xs">
+                    ₱{parseFloat(info.getValue()).toLocaleString()}
+                </div>
+            ),
+        }),
+        columnHelper.accessor('created_at', {
+            header: 'Date',
+            cell: (info) => (
+                <span className="text-stone-400 text-[10px] font-medium whitespace-nowrap uppercase">
+                    {new Date(info.getValue()).toLocaleDateString()}
+                </span>
+            ),
+        }),
+        columnHelper.display({
+            id: 'actions',
+            header: () => <div className="text-center">Action</div>,
+            cell: (info) => (
+                <div className="text-center">
+                    <Link to="/orders/$id" params={{ id: String(info.row.original.id) }} className="text-[10px] font-bold text-stone-900 hover:underline">
+                        View
+                    </Link>
+                </div>
+            ),
+        }),
+    ];
+
+    const table = useReactTable({
+        data: orders,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+    });
+
+    const [localKanbanData, setLocalKanbanData] = useState<Record<string, Order[]>>({
+        NEW: [],
+        PREPARING: [],
+        PACKED: [],
+        LOGISTICS: [],
     });
 
     const canCreate = hasPermission('orders.create');
-    const result = data?.success ? data.data : null;
-    const orders = result?.orders ?? [];
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const lastUpdated = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -72,7 +228,7 @@ export default function OrdersPage(): React.ReactElement {
     const handleExport = (format: string) => console.log(`Exporting as ${format}`);
 
     const kanbanData = useMemo(() => {
-        const columns: Record<string, Order[]> = {
+        const cols: Record<string, Order[]> = {
             NEW: [],
             PREPARING: [],
             PACKED: [],
@@ -80,16 +236,31 @@ export default function OrdersPage(): React.ReactElement {
         };
 
         orders.forEach(order => {
-            if (order.status === 'PENDING') columns.NEW.push(order);
-            else if (order.status === 'CONFIRMED' || order.status === 'PROCESSING') columns.PREPARING.push(order);
-            else if (order.status === 'SHIPPED') columns.LOGISTICS.push(order);
-            // Default to PREPARING if not matched for now
-            else columns.PREPARING.push(order);
+            const col = getKanbanColumn(order.status);
+            cols[col].push(order);
         });
 
-        return columns;
+        return cols;
     }, [orders]);
 
+    useEffect(() => {
+        setLocalKanbanData(kanbanData);
+    }, [kanbanData]);
+
+    const updateMutation = useUpdateOrderStatus();
+
+    const handleMove = useCallback((event: any) => {
+        const { activeContainer, overContainer, event: dndEvent } = event;
+
+        if (activeContainer !== overContainer) {
+            const orderId = dndEvent.active.id;
+            const newStatus = STATUS_MAP[overContainer];
+
+            if (newStatus && orderId) {
+                updateMutation.mutate({ id: Number(orderId), status: newStatus });
+            }
+        }
+    }, [updateMutation]);
 
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-h-screen bg-[#FDFDFD]">
@@ -126,7 +297,7 @@ export default function OrdersPage(): React.ReactElement {
                     <HugeiconsIcon icon={Search01Icon} size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                     <div className="flex items-center">
                         <Input
-                            placeholder="Search"
+                            placeholder={activeTab === 'shop' ? 'Search orders…' : 'Search distributor orders…'}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9 pr-10 border-stone-200 placeholder:text-stone-400 focus-visible:ring-stone-400 h-9"
@@ -141,14 +312,14 @@ export default function OrdersPage(): React.ReactElement {
                     <div className="flex items-center gap-4 text-xs font-medium text-stone-400">
                         <button
                             onClick={() => setViewMode('list')}
-                            className={cn("flex items-center gap-1.5 transition-colors", viewMode === 'list' ? "text-stone-900" : "hover:text-stone-600")}
+                            className={cn('flex items-center gap-1.5 transition-colors', viewMode === 'list' ? 'text-stone-900' : 'hover:text-stone-600')}
                         >
                             <HugeiconsIcon icon={ListViewIcon} size={14} />
                             List
                         </button>
                         <button
                             onClick={() => setViewMode('kanban')}
-                            className={cn("flex items-center gap-1.5 transition-colors relative py-1", viewMode === 'kanban' ? "text-stone-900" : "hover:text-stone-600")}
+                            className={cn('flex items-center gap-1.5 transition-colors relative py-1', viewMode === 'kanban' ? 'text-stone-900' : 'hover:text-stone-600')}
                         >
                             <HugeiconsIcon icon={KanbanIcon} size={14} />
                             Cards / Kanban
@@ -156,7 +327,6 @@ export default function OrdersPage(): React.ReactElement {
                         </button>
                     </div>
                 </div>
-
 
                 <div className="flex items-center gap-2 sm:ml-auto">
                     <div className="hidden xl:flex items-center text-[10px] text-stone-400 shrink-0 ml-auto mr-4">
@@ -195,84 +365,143 @@ export default function OrdersPage(): React.ReactElement {
             {/* Tabs Row */}
             <div className="flex items-center gap-4 text-xs font-bold border-b border-stone-100">
                 <button
-                    onClick={() => setActiveTab('shop')}
+                    onClick={() => handleTabChange('shop')}
                     className={cn(
-                        "pb-2 transition-colors",
-                        activeTab === 'shop' ? "text-stone-900 border-b-2 border-stone-900" : "text-stone-400 hover:text-stone-600"
+                        'pb-2 transition-colors flex items-center gap-1.5',
+                        activeTab === 'shop' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400 hover:text-stone-600'
                     )}
                 >
+                    <HugeiconsIcon icon={UserIcon} size={12} />
                     Shop Orders
+                    {data?.success && activeTab === 'shop' && (
+                        <span className="ml-1 text-[10px] font-bold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                            {result?.pagination.total ?? 0}
+                        </span>
+                    )}
                 </button>
                 <button
-                    onClick={() => setActiveTab('distributor')}
+                    onClick={() => handleTabChange('distributor')}
                     className={cn(
-                        "pb-2 transition-colors",
-                        activeTab === 'distributor' ? "text-stone-900 border-b-2 border-stone-900" : "text-stone-400 hover:text-stone-600"
+                        'pb-2 transition-colors flex items-center gap-1.5',
+                        activeTab === 'distributor' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400 hover:text-stone-600'
                     )}
                 >
+                    <HugeiconsIcon icon={Store02Icon} size={12} />
                     Distributor Orders
+                    {data?.success && activeTab === 'distributor' && (
+                        <span className="ml-1 text-[10px] font-bold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                            {result?.pagination.total ?? 0}
+                        </span>
+                    )}
                 </button>
             </div>
 
             {/* Content Area */}
             {isLoading ? (
-                <div className="py-20 text-center text-stone-400 text-sm">Loading orders...</div>
+                <div className="py-20 text-center text-stone-400 text-sm">Loading orders…</div>
             ) : isError ? (
                 <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                     Failed to load orders.
                 </div>
             ) : viewMode === 'list' ? (
-                <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-stone-100 text-sm">
+                <div className="space-y-4">
+                    <div className="overflow-x-auto -mx-4 sm:mx-0">
+                        <table className="min-w-full text-sm">
                             <thead>
-                                <tr className="bg-stone-50 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                                    <th className="px-5 py-3 text-left">Order Number</th>
-                                    <th className="px-5 py-3 text-left">Status</th>
-                                    <th className="px-5 py-3 text-left">Payment</th>
-                                    <th className="px-5 py-3 text-right">Total</th>
-                                    <th className="px-5 py-3 text-left">Date</th>
-                                    <th className="px-5 py-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-stone-100">
-                                {orders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-stone-50 transition-colors">
-                                        <td className="px-5 py-4 font-mono font-medium text-stone-900 text-xs">
-                                            {order.order_number}
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <span className="inline-flex text-[10px] px-2 py-0.5 rounded-md font-bold bg-green-50 text-green-600 border border-green-100">
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <span className="inline-flex text-[10px] px-2 py-0.5 rounded-md font-bold bg-stone-50 text-stone-600 border border-stone-100">
-                                                {order.payment_status}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-4 text-right font-medium text-stone-900 text-xs">
-                                            ₱{parseFloat(order.total_amount).toLocaleString()}
-                                        </td>
-                                        <td className="px-5 py-4 text-stone-400 text-[10px] font-medium whitespace-nowrap uppercase">
-                                            {new Date(order.created_at).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-5 py-4 text-center">
-                                            <Link to="/orders/$id" params={{ id: String(order.id) }} className="text-[10px] font-bold text-stone-900 hover:underline">
-                                                View
-                                            </Link>
-                                        </td>
+                                {table.getHeaderGroups().map(headerGroup => (
+                                    <tr key={headerGroup.id} className="border-b border-stone-100">
+                                        {headerGroup.headers.map(header => (
+                                            <th
+                                                key={header.id}
+                                                className={cn(
+                                                    'pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6',
+                                                    header.id === 'order_number' && 'pl-4 sm:pl-0'
+                                                )}
+                                            >
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(
+                                                        header.column.columnDef.header,
+                                                        header.getContext()
+                                                    )}
+                                            </th>
+                                        ))}
                                     </tr>
                                 ))}
+                            </thead>
+                            <tbody className="divide-y divide-stone-50">
+                                {table.getRowModel().rows.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={columns.length} className="py-16 text-center text-stone-400">
+                                            No orders found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    table.getRowModel().rows.map(row => (
+                                        <tr key={row.id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                                            {row.getVisibleCells().map(cell => (
+                                                <td
+                                                    key={cell.id}
+                                                    className="py-3.5 pr-6"
+                                                >
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+                        <span className="text-xs text-stone-400">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                type="button"
+                                disabled={page === 1}
+                                onClick={() => setPage((p) => p - 1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <HugeiconsIcon icon={ArrowLeft01Icon} size={12} />
+                            </button>
+                            {pageNumbers.map((n, i) =>
+                                n === 'ellipsis' ? (
+                                    <span key={`e-${i}`} className="w-7 h-7 flex items-center justify-center text-xs text-stone-400">…</span>
+                                ) : (
+                                    <button
+                                        key={n}
+                                        type="button"
+                                        onClick={() => setPage(n)}
+                                        className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-medium transition-colors ${currentPage === n
+                                            ? 'bg-stone-900 text-white'
+                                            : 'border border-stone-200 text-stone-500 hover:bg-stone-50'
+                                            }`}
+                                    >
+                                        {n}
+                                    </button>
+                                )
+                            )}
+                            <button
+                                type="button"
+                                disabled={page === totalPages}
+                                onClick={() => setPage((p) => p + 1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             ) : (
                 <Kanban
-                    value={kanbanData}
-                    onValueChange={() => { }}
+                    value={localKanbanData}
+                    onValueChange={setLocalKanbanData}
                     getItemValue={(item) => String(item.id)}
+                    onMove={handleMove}
                 >
                     <KanbanBoard className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                         {KANBAN_COLUMNS.map((col) => {
@@ -282,10 +511,10 @@ export default function OrdersPage(): React.ReactElement {
                                     <div className="flex items-center justify-between mb-4 px-1">
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-2 bg-stone-50 px-2 py-1 rounded-md border border-stone-100">
-                                                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dot)} />
+                                                <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', config.dot)} />
                                                 <span className="text-xs font-bold text-stone-500">{col.label}</span>
                                                 <span className="text-[10px] font-bold text-green-600 bg-green-100 px-1.5 rounded">
-                                                    {kanbanData[col.id].length}
+                                                    {localKanbanData[col.id]?.length ?? 0}
                                                 </span>
                                             </div>
                                         </div>
@@ -295,10 +524,12 @@ export default function OrdersPage(): React.ReactElement {
                                         </div>
                                     </div>
                                     <KanbanColumnContent value={col.id} className="flex flex-col gap-3">
-                                        {kanbanData[col.id].map((order) => (
-                                            <KanbanCard key={order.id} order={order} config={config} />
+                                        {(localKanbanData[col.id] ?? []).map((order) => (
+                                            <KanbanItem key={order.id} value={String(order.id)}>
+                                                <KanbanCard order={order} config={config} />
+                                            </KanbanItem>
                                         ))}
-                                        {kanbanData[col.id].length === 0 && (
+                                        {(localKanbanData[col.id] ?? []).length === 0 && (
                                             <div className="py-10 border-2 border-dashed border-stone-100 rounded-2xl flex items-center justify-center">
                                                 <span className="text-stone-300 text-xs font-medium">No orders</span>
                                             </div>
@@ -315,45 +546,55 @@ export default function OrdersPage(): React.ReactElement {
 }
 
 function KanbanCard({ order, config }: { order: Order; config: any }) {
+    const displayName = getOrderDisplayName(order);
+    const isDistributor = !!order.distributor;
+    const orderDate = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const itemCount = (order as any).items?.length ?? '—';
+
     return (
-        <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="flex items-start justify-between mb-3">
-                <div className="space-y-0.5">
-                    <h3 className="text-xs font-bold text-stone-900 line-clamp-1">Emily White</h3>
-                    <p className="text-[10px] font-medium text-stone-400 uppercase tracking-tight">{order.order_number}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-stone-400 whitespace-nowrap uppercase">Nov 16, 2025</span>
-                    <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                        <HugeiconsIcon icon={ArrowRight01Icon} size={10} className="text-green-500" />
+        <KanbanItemHandle>
+            <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div className="flex items-start justify-between mb-3">
+                    <div className="space-y-0.5">
+                        <h3 className="text-xs font-bold text-stone-900 line-clamp-1">{displayName}</h3>
+                        <p className="text-[10px] font-medium text-stone-400 uppercase tracking-tight">{order.order_number}</p>
                     </div>
-                </div>
-            </div>
-
-            <div className="h-px bg-stone-100 border-dashed border-stone-100 w-full mb-3" />
-
-            <div className="flex items-center justify-between mt-auto">
-                <div className="flex flex-col gap-2">
-                    <span className="text-[10px] font-bold text-stone-300 uppercase">Order Status</span>
                     <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-stone-100 overflow-hidden shrink-0 border border-stone-200">
-                            {/* Placeholder avatar */}
-                        </div>
-                        <span className="text-[10px] font-bold text-stone-400">2 items</span>
+                        <span className="text-[10px] font-medium text-stone-400 whitespace-nowrap uppercase">{orderDate}</span>
+                        <Link to="/orders/$id" params={{ id: String(order.id) }}>
+                            <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={10} className="text-green-500" />
+                            </div>
+                        </Link>
                     </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                    <span className={cn("text-[10px] font-bold px-4 py-1.5 rounded-lg border", config.bg, config.text, "border-opacity-10")}>
-                        {config.label}
-                    </span>
-                    <div className="w-6 h-6 rounded-full bg-[#0055FF] flex items-center justify-center shrink-0">
-                        {/* Placeholder generic payment icon */}
-                        <div className="text-[8px] text-white font-bold">GC</div>
+
+                <div className="h-px bg-stone-100 border-dashed border-stone-100 w-full mb-3" />
+
+                <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] font-bold text-stone-300 uppercase">
+                            {isDistributor ? 'Distributor' : 'Customer'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-stone-100 overflow-hidden shrink-0 border border-stone-200 flex items-center justify-center">
+                                <HugeiconsIcon icon={isDistributor ? Store02Icon : UserIcon} size={10} className="text-stone-400" />
+                            </div>
+                            <span className="text-[10px] font-bold text-stone-400">
+                                {itemCount === '—' ? '— items' : `${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                        <span className={cn('text-[10px] font-bold px-4 py-1.5 rounded-lg border', config.bg, config.text, 'border-opacity-10')}>
+                            {config.label}
+                        </span>
+                        <span className="text-[10px] font-bold text-stone-500">
+                            ₱{parseFloat(order.total_amount).toLocaleString()}
+                        </span>
                     </div>
                 </div>
             </div>
-        </div>
+        </KanbanItemHandle>
     );
 }
-
-
