@@ -1,44 +1,54 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  getTrainingModules,
-  createTrainingModule,
-  updateTrainingModule,
-  deleteTrainingModule,
-  publishTrainingModule,
-} from '@/features/training/api';
+  Add01Icon,
+  Search01Icon,
+  ArrowDown01Icon,
+  Upload06Icon,
+  FilterMailIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  MoreHorizontalIcon,
+} from '@hugeicons/core-free-icons';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
-import type { TrainingModule } from '@/features/training/types';
+import { trainingSchema } from '@/features/training/types';
+import type { TrainingModule, TrainingFormValues, TrainingModalState, ModuleFormProps } from '@/features/training/types';
+import { 
+  useTrainingModules, 
+  useCreateTraining, 
+  useUpdateTraining, 
+  useDeleteTraining, 
+  usePublishTraining, 
+  useUnpublishTraining 
+} from '@/features/training/hooks/use-training';
+import { useState } from 'react';
 
-const schema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().nullable().optional(),
-  sort_order: z.number().int().min(0).optional(),
-  is_published: z.boolean().optional(),
-});
+// Removed internal schema and types (moved to types/training.types.ts)
 
-type FormValues = z.infer<typeof schema>;
-
-type ModalState = null | 'create' | TrainingModule;
-
-interface ModuleFormProps {
-  initial: TrainingModule | null;
-  onClose: () => void;
-  onSaved: () => void;
-}
+const TRAINING_FOLDERS = [
+  { id: 1, name: 'Training Modules', files: 30, size: '137 MB' },
+  { id: 2, name: 'Video Library', files: 30, size: '137 MB' },
+  { id: 3, name: 'Product Knowledge', files: 30, size: '137 MB' },
+  { id: 4, name: 'Distributor Onboarding', files: 30, size: '137 MB' },
+  { id: 5, name: 'Certification Tracking', files: 30, size: '137 MB' },
+];
 
 function ModuleForm({ initial, onClose, onSaved }: ModuleFormProps): React.ReactElement {
-  const queryClient = useQueryClient();
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<TrainingFormValues>({
+    resolver: zodResolver(trainingSchema),
     defaultValues: {
       title: initial?.title ?? '',
       description: initial?.description ?? null,
@@ -47,37 +57,12 @@ function ModuleForm({ initial, onClose, onSaved }: ModuleFormProps): React.React
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: FormValues) =>
-      createTrainingModule({
-        title: payload.title,
-        description: payload.description ?? null,
-        sort_order: payload.sort_order,
-        is_published: payload.is_published,
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['training'] });
-      onSaved();
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (payload: FormValues) =>
-      updateTrainingModule(initial!.id, {
-        title: payload.title,
-        description: payload.description ?? null,
-        sort_order: payload.sort_order,
-        is_published: payload.is_published,
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['training'] });
-      onSaved();
-    },
-  });
+  const createMutation = useCreateTraining({ onSuccess: onSaved });
+  const updateMutation = useUpdateTraining(initial?.id ?? 0, { onSuccess: onSaved });
 
   const mutationError = createMutation.error ?? updateMutation.error;
 
-  function onSubmit(values: FormValues): void {
+  function onSubmit(values: TrainingFormValues): void {
     if (initial) {
       updateMutation.mutate(values);
     } else {
@@ -92,7 +77,7 @@ function ModuleForm({ initial, onClose, onSaved }: ModuleFormProps): React.React
       aria-labelledby="module-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg">
+      <div className="bg-white rounded-xl w-full max-w-lg">
         <header className="px-6 py-4 border-b border-gray-100">
           <h2 id="module-modal-title" className="text-base font-semibold text-gray-900">
             {initial ? 'Edit Module' : 'New Module'}
@@ -186,35 +171,17 @@ function ModuleForm({ initial, onClose, onSaved }: ModuleFormProps): React.React
 
 export default function TrainingPage(): React.ReactElement {
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState<ModalState>(null);
+  const [modal, setModal] = useState<TrainingModalState>(null);
+  const [search, setSearch] = useState('');
+  const [exportOpen, setExportOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const { hasPermission } = useAuth();
-  const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['training', page],
-    queryFn: () => getTrainingModules({ page, per_page: 15 }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteTrainingModule(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['training'] });
-    },
-  });
-
-  const publishMutation = useMutation({
-    mutationFn: (id: number) => publishTrainingModule(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['training'] });
-    },
-  });
-
-  const unpublishMutation = useMutation({
-    mutationFn: (id: number) => updateTrainingModule(id, { is_published: false }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['training'] });
-    },
-  });
+  const { data, isLoading, isError } = useTrainingModules(page);
+  const deleteMutation = useDeleteTraining();
+  const publishMutation = usePublishTraining();
+  const unpublishMutation = useUnpublishTraining();
 
   function handleDelete(m: TrainingModule): void {
     if (!window.confirm(`Delete "${m.title}"? This action cannot be undone.`)) return;
@@ -239,150 +206,299 @@ export default function TrainingPage(): React.ReactElement {
 
   const result = data?.success ? data.data : null;
 
+  const totalPages = result?.pagination?.last_page ?? 1;
+  const currentPage = result?.pagination?.current_page ?? page;
+
+  const pageNumbers: (number | 'ellipsis')[] = [];
+  if (totalPages <= 5) {
+    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+  } else {
+    pageNumbers.push(1);
+    if (currentPage > 3) pageNumbers.push('ellipsis');
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      pageNumbers.push(i);
+    }
+    if (currentPage < totalPages - 2) pageNumbers.push('ellipsis');
+    pageNumbers.push(totalPages);
+  }
+
   const canCreate = hasPermission('training.create');
   const canUpdate = hasPermission('training.update');
   const canDelete = hasPermission('training.delete');
   const hasActions = canUpdate || canDelete;
 
+  const handleExport = (format: string) => console.log(`Exporting as ${format}`);
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const lastUpdated = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+
   return (
-    <div className="p-6 space-y-5">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Training</h1>
-          {result && (
-            <p className="text-sm text-gray-500 mt-0.5">{result.pagination.total} modules</p>
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 min-h-full bg-white">
+      {/* Date + Export As */}
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs text-stone-400">{today}</p>
+        <div className="relative">
+          <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
+            <DropdownMenuTrigger className="flex items-center gap-1.5 border border-stone-200 text-stone-600 shrink-0 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8">
+              <span className="hidden sm:inline">Export As</span>
+              <span className="hidden sm:inline w-px h-3.5 bg-stone-300" />
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={14}
+                className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom" className="w-29 min-w-0">
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('pdf')}>PDF</DropdownMenuItem>
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('docx')}>.Docx</DropdownMenuItem>
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('svg')}>SVG</DropdownMenuItem>
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('html')}>HTML</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Page Title */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">Trainings & Module</h1>
+
+      {/* Search + Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1 sm:max-w-sm">
+          <HugeiconsIcon icon={Search01Icon} size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Input
+            placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 border-stone-200 placeholder:text-stone-400 focus-visible:ring-stone-400"
+          />
+        </div>
+
+        <div className="hidden md:flex items-center text-xs text-stone-400 shrink-0">
+          Last Updated: {lastUpdated}
+        </div>
+
+        <div className="flex items-center gap-2 sm:ml-auto">
+          {canCreate && (
+            <button
+              onClick={() => setModal('create')}
+              className="flex items-center gap-1.5 bg-stone-900 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-stone-700 transition-colors h-8"
+            >
+              <span className="hidden sm:inline">Create Folder</span>
+              <HugeiconsIcon icon={Add01Icon} size={14} />
+            </button>
           )}
+          <Button variant="outline" size="sm" className="flex items-center gap-1.5 border-stone-200 text-stone-600">
+            <span className="hidden sm:inline">Import</span>
+            <HugeiconsIcon icon={Upload06Icon} size={14} className="rotate-180" />
+          </Button>
+          <DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
+            <DropdownMenuTrigger className="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 border border-stone-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 font-medium">
+              <span className="hidden sm:inline">{activeFilter ?? 'Filter'}</span>
+              <HugeiconsIcon
+                icon={FilterMailIcon}
+                size={15}
+                className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : 'rotate-0'}`}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="bottom" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0">
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Title')}>By Title</DropdownMenuItem>
+              <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Status')}>By Status</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        {canCreate && (
-          <button
-            type="button"
-            onClick={() => setModal('create')}
-            className="shrink-0 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-          >
-            New Module
-          </button>
+      </div>
+
+      {/* Folders Section */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-stone-900">Folders</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {TRAINING_FOLDERS.map((folder) => (
+            <div key={folder.id} className="bg-white p-7 rounded-[28px] border border-stone-100 flex flex-col justify-between min-h-[188px] hover:border-stone-200 transition-all group">
+              <div className="flex items-start justify-between">
+                <img src="/folder.png" className="w-16 grayscale" alt="" />
+                <button className="text-stone-300 hover:text-stone-500 transition-colors">
+                  <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
+                </button>
+              </div>
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-stone-800 leading-tight">{folder.name}</h3>
+                <p className="text-xs text-stone-400 font-medium mt-1">
+                  {folder.files} Files &nbsp; · &nbsp; {folder.size}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Files Section */}
+      <div className="pt-2 space-y-4">
+        <h2 className="text-xl font-bold text-stone-900">Recent Files</h2>
+
+        {isLoading && (
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center text-sm text-gray-400">
+            Loading training modules...
+          </div>
         )}
-      </header>
 
-      {isLoading && (
-        <div className="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center text-sm text-gray-400">
-          Loading training modules...
-        </div>
-      )}
+        {isError && (
+          <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            Failed to load training modules. Please try again.
+          </div>
+        )}
 
-      {isError && (
-        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          Failed to load training modules. Please try again.
-        </div>
-      )}
-
-      {result && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100 text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  <th className="px-5 py-3 text-center">Order</th>
-                  <th className="px-5 py-3 text-left">Title</th>
-                  <th className="px-5 py-3 text-center">Published</th>
-                  <th className="px-5 py-3 text-left">Created</th>
-                  {hasActions && <th className="px-5 py-3 text-right">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {result.modules.length === 0 ? (
-                  <tr>
-                    <td colSpan={hasActions ? 5 : 4} className="px-5 py-16 text-center text-gray-400">
-                      No training modules found
-                    </td>
+        {result && (
+          <>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-100">
+                    <th className="pb-3 text-left pl-4 sm:pl-0 w-8">
+                      <div className="w-4 h-4 border-2 border-stone-100 rounded-[3px]" />
+                    </th>
+                    <th className="pb-3 text-left text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-6 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        File Name
+                        <div className="flex flex-col -gap-1 opacity-50">
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <path d="M18 15l-6-6-6 6" />
+                          </svg>
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </div>
+                      </div>
+                    </th>
+                    <th className="pb-3 text-left text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-6 uppercase tracking-wider">Type</th>
+                    <th className="pb-3 text-left text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-6 uppercase tracking-wider">File Size</th>
+                    <th className="pb-3 text-left text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-6 uppercase tracking-wider">Uploaded By</th>
+                    <th className="pb-3 text-left text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-6 uppercase tracking-wider">Date</th>
+                    {hasActions && <th className="pb-3 text-right text-[10px] font-bold text-stone-400/80 pr-4 sm:pr-0 uppercase tracking-wider">Action</th>}
                   </tr>
-                ) : (
-                  result.modules.map((m: TrainingModule) => (
-                    <tr key={m.id} className="hover:bg-gray-50">
-                      <td className="px-5 py-3 text-center text-gray-400 text-xs">{m.sort_order}</td>
-                      <td className="px-5 py-3">
-                        <p className="font-medium text-gray-900">{m.title}</p>
-                        {m.description && (
-                          <p className="text-xs text-gray-400 truncate max-w-md">{m.description}</p>
-                        )}
+                </thead>
+                <tbody>
+                  {result.modules.length === 0 ? (
+                    <tr>
+                      <td colSpan={hasActions ? 7 : 6} className="py-16 text-center text-stone-400">
+                        No training modules found
                       </td>
-                      <td className="px-5 py-3 text-center">
-                        <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${
-                          m.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {m.is_published ? 'Published' : 'Draft'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
-                        {new Date(m.created_at).toLocaleDateString()}
-                      </td>
-                      {hasActions && (
-                        <td className="px-5 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {canUpdate && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => setModal(m)}
-                                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handlePublishToggle(m)}
-                                  disabled={publishMutation.isPending || unpublishMutation.isPending}
-                                  className="text-xs font-medium text-amber-600 hover:text-amber-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  {m.is_published ? 'Unpublish' : 'Publish'}
-                                </button>
-                              </>
-                            )}
-                            {canDelete && (
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(m)}
-                                disabled={deleteMutation.isPending}
-                                className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                Delete
-                              </button>
-                            )}
+                    </tr>
+                  ) : (
+                    result.modules.map((m: TrainingModule) => (
+                      <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50/50 transition-colors group">
+                        <td className="py-4 pl-4 sm:pl-0">
+                          <div className="w-4 h-4 border-2 border-stone-100 rounded-[3px] group-hover:border-stone-200 transition-colors" />
+                        </td>
+                        <td className="py-4 pr-6">
+                          <p className="text-xs font-bold text-stone-500 truncate max-w-sm">{m.title}</p>
+                        </td>
+                        <td className="py-4 pr-6">
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center p-1 font-bold text-[7px] bg-[#EF4444] text-white rounded-[2px] w-4.5 h-4.5 uppercase leading-none">
+                              pdf
+                            </div>
+                            <div className="bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded-[3px] text-[10px] font-bold uppercase w-fit tracking-tight">
+                              PDF
+                            </div>
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        <td className="py-4 pr-6 text-xs text-stone-400 font-medium">12.5 MB</td>
+                        <td className="py-4 pr-6">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg bg-stone-100 overflow-hidden ring-1 ring-stone-100">
+                              <img src={`https://ui-avatars.com/api/?name=${m.id}&background=random`} alt="" className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-xs font-bold text-stone-500">Juan Dela Cruz</span>
+                          </div>
+                        </td>
+                        <td className="py-4 pr-6 text-[11px] text-stone-500 font-bold whitespace-nowrap">
+                          {new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </td>
+                        {hasActions && (
+                          <td className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="text-stone-300 hover:text-stone-500 transition-colors focus:outline-none">
+                                <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-32">
+                                {canUpdate && (
+                                  <>
+                                    <DropdownMenuItem onClick={() => setModal(m)}>
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handlePublishToggle(m)}
+                                      disabled={publishMutation.isPending || unpublishMutation.isPending}
+                                    >
+                                      {m.is_published ? 'Unpublish' : 'Publish'}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {canDelete && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleDelete(m)}
+                                    disabled={deleteMutation.isPending}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {result.pagination.last_page > 1 && (
-            <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500 bg-gray-50">
-              <span>Page {result.pagination.current_page} of {result.pagination.last_page}</span>
-              <div className="flex gap-1">
+            <div className="flex items-center justify-between pt-4 mt-2">
+              <span className="text-[10px] font-bold text-stone-300 uppercase tracking-tight">
+                Page {currentPage} of {totalPages}
+              </span>
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-stone-300 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Previous
+                  <HugeiconsIcon icon={ArrowLeft01Icon} size={12} />
                 </button>
+                <div className="flex items-center gap-1">
+                  {pageNumbers.map((n, i) =>
+                    n === 'ellipsis' ? (
+                      <span key={`e-${i}`} className="w-7 h-7 flex items-center justify-center text-[10px] text-stone-300">…</span>
+                    ) : (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setPage(n)}
+                        className={`w-7 h-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-colors ${currentPage === n
+                          ? 'bg-stone-900 text-white'
+                          : 'text-stone-400 hover:bg-stone-50'
+                          }`}
+                      >
+                        {n}
+                      </button>
+                    )
+                  )}
+                </div>
                 <button
                   type="button"
-                  disabled={page === result.pagination.last_page}
+                  disabled={page === totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-stone-300 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </>
+        )}
+      </div>
+
 
       {modal !== null && (
         <ModuleForm

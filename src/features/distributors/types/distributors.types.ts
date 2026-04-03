@@ -49,3 +49,12 @@ export interface NetworkResellersData {
     total: number;
     resellers: NetworkReseller[];
 }
+
+export interface DistributorFilters {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    rank?: string;
+    status?: string;
+    city?: string;
+}

@@ -29,6 +29,7 @@ import {
     MoreHorizontalIcon,
     TransitionRightIcon,
     ArrowDown02Icon,
+    CourseIcon,
 } from '@hugeicons/core-free-icons';
 import {
     Sidebar,
@@ -110,7 +111,7 @@ function useBreadcrumb() {
 function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; onToggleTheme: () => void }) {
     const breadcrumb = useBreadcrumb();
     const [language, setLanguage] = useState(LANGUAGES[0]);
-     const [langOpen, setLangOpen] = useState(false);
+    const [langOpen, setLangOpen] = useState(false);
 
     return (
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-stone-100 bg-white px-3 sticky top-0 z-10">
@@ -165,31 +166,31 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
 
                 {/* Language selector */}
                 <DropdownMenu open={langOpen} onOpenChange={setLangOpen}>
-    <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-stone-600 hover:bg-stone-100 transition-colors">
-        <HugeiconsIcon icon={EarthIcon} size={13} className="text-stone-400" />
-        <span className={`fi fi-${language.country} rounded-sm`} />
-        <span className="hidden sm:inline">{language.label}</span>
-        <HugeiconsIcon 
-            icon={ArrowDown01Icon} 
-            size={12} 
-            className={`text-stone-400 transition-transform duration-200 ${langOpen ? 'rotate-180' : 'rotate-0'}`}
-        />
-    </DropdownMenuTrigger>
-   <DropdownMenuContent align="end" side="bottom" className="w-40 min-w-0">
-    {LANGUAGES.map((lang) => (
-        <DropdownMenuItem
-            key={lang.code}
-            className="text-sm text-stone-600 cursor-pointer py-1 gap-2"
-            onClick={() => setLanguage(lang)}
-        >
-            <span className={`fi fi-${lang.country} rounded-sm`} />
-            <span>{lang.label}</span>
-            {language.code === lang.code && (
-                <span className="ml-auto text-stone-900">✓</span>
-            )}  
-        </DropdownMenuItem>
-    ))}
-</DropdownMenuContent>
+                    <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-stone-600 hover:bg-stone-100 transition-colors">
+                        <HugeiconsIcon icon={EarthIcon} size={13} className="text-stone-400" />
+                        <span className={`fi fi-${language.country} rounded-sm`} />
+                        <span className="hidden sm:inline">{language.label}</span>
+                        <HugeiconsIcon
+                            icon={ArrowDown01Icon}
+                            size={12}
+                            className={`text-stone-400 transition-transform duration-200 ${langOpen ? 'rotate-180' : 'rotate-0'}`}
+                        />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="bottom" className="w-40 min-w-0">
+                        {LANGUAGES.map((lang) => (
+                            <DropdownMenuItem
+                                key={lang.code}
+                                className="text-sm text-stone-600 cursor-pointer py-1 gap-2"
+                                onClick={() => setLanguage(lang)}
+                            >
+                                <span className={`fi fi-${lang.country} rounded-sm`} />
+                                <span>{lang.label}</span>
+                                {language.code === lang.code && (
+                                    <span className="ml-auto text-stone-900">✓</span>
+                                )}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
                 </DropdownMenu>
 
                 <Separator orientation="vertical" className="h-4 mx-1" />
@@ -202,17 +203,17 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
                     <HugeiconsIcon icon={Notification01Icon} size={15} />
                 </button>
                 <button
-    type="button"
-    onClick={onToggleTheme}
-    className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200"
-    title={isDark ? 'Light mode' : 'Dark mode'}
->
-    <HugeiconsIcon 
-    icon={Moon02Icon} 
-    size={15}
-    className={isDark ? 'text-stone-900 fill-stone-900' : 'text-stone-400'}
-/>
-</button>
+                    type="button"
+                    onClick={onToggleTheme}
+                    className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200"
+                    title={isDark ? 'Light mode' : 'Dark mode'}
+                >
+                    <HugeiconsIcon
+                        icon={Moon02Icon}
+                        size={15}
+                        className={isDark ? 'text-stone-900 fill-stone-900' : 'text-stone-400'}
+                    />
+                </button>
 
                 <Separator orientation="vertical" className="h-4 mx-1" />
 
@@ -286,7 +287,7 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
                 </div>
             </SidebarHeader>
 
-            <SidebarSeparator />
+            {/* <SidebarSeparator /> */}
 
             <SidebarContent>
 
@@ -398,8 +399,14 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <SidebarMenuButton render={<Link to="/marketing" onClick={handleNavClick} />} isActive={isActive('/marketing')} tooltip="Marketing Tools" className={btnCls}>
-                                    <HugeiconsIcon icon={Megaphone03Icon} size={16} />
+                                    <HugeiconsIcon icon={CourseIcon} size={16} />
                                     <span>Marketing Tools</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton render={<Link to="/announcements" onClick={handleNavClick} />} isActive={isActive('/announcements')} tooltip="Announcements" className={btnCls}>
+                                    <HugeiconsIcon icon={Megaphone03Icon} size={16} />
+                                    <span>Announcements</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>

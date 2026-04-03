@@ -1,6 +1,8 @@
 import type { Pagination } from '@/lib/api/types';
 
 export type BundleType = 'FIXED' | 'DYNAMIC' | 'GIFT_SET';
+export const BUNDLE_TYPES: BundleType[] = ['FIXED', 'DYNAMIC', 'GIFT_SET'];
+
 
 export interface BundleItem {
     id: number;
@@ -31,3 +33,6 @@ export interface BundleListData {
     bundles: Bundle[];
     pagination: Pagination;
 }
+
+export type BundleModalMode = null | 'create' | { edit: Bundle };
+

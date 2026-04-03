@@ -20,6 +20,7 @@ import {
     GiftIcon,
     Home01Icon,
     Invoice01Icon,
+    Megaphone02Icon,
     PackageIcon,
     PercentIcon,
     RankingIcon,
@@ -66,6 +67,7 @@ const navItems = [
             { title: "Inventory", url: "/inventory", icon: PackageIcon },
             { title: "Training", url: "/training", icon: CourseIcon },
             { title: "Marketing", url: "/marketing", icon: ChartAverageIcon },
+            { title: "Announcements", url: "/announcements", icon: Megaphone02Icon },
         ],
     },
     {

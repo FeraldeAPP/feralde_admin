@@ -17,3 +17,6 @@ export interface CategoryListData {
     categories: Category[];
     pagination: Pagination;
 }
+
+export type CategoryModalMode = null | 'create' | { edit: Category };
+

@@ -1,8 +1,4 @@
 import { useState } from 'react';
-import { Link, useRouterState } from '@tanstack/react-router';
-import { useProducts } from '../hooks/use-products';
-import { useAuth } from '@/hooks/use-auth';
-import ProductRow from '../components/ProductRow.new';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
     Add01Icon,
@@ -12,7 +8,9 @@ import {
     FilterMailIcon,
     ArrowLeft01Icon,
     ArrowRight01Icon,
+    Megaphone01Icon,
 } from '@hugeicons/core-free-icons';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,31 +25,240 @@ import {
     flexRender,
     createColumnHelper,
 } from '@tanstack/react-table';
-import type { Product, ProductFilters } from '../types';
+import { useAuth } from '@/hooks/use-auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { 
+  announcementSchema, 
+  type Announcement, 
+  type AnnouncementFormValues, 
+  type AnnouncementModalMode 
+} from '../types';
+import {
+  useAnnouncements,
+  useCreateAnnouncement,
+  useUpdateAnnouncement,
+  useDeleteAnnouncement,
+  usePublishAnnouncement,
+  useUnpublishAnnouncement,
+} from '../hooks/use-announcements';
 
-const columnHelper = createColumnHelper<Product>();
+const columnHelper = createColumnHelper<Announcement>();
 
-export default function ProductsPage() {
+function AnnouncementModal({
+  mode,
+  onClose,
+}: {
+  mode: Exclude<AnnouncementModalMode, null>;
+  onClose: () => void;
+}): React.ReactElement {
+  const editing = typeof mode !== 'string' ? mode.edit : null;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AnnouncementFormValues>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: editing
+      ? {
+          title: editing.title,
+          body: editing.body,
+          image_url: editing.image_url ?? null,
+          target_roles: editing.target_roles ?? null,
+          is_pinned: editing.is_pinned,
+          expires_at: editing.expires_at ? editing.expires_at.slice(0, 10) : null,
+        }
+      : {
+          title: '',
+          body: '',
+          image_url: null,
+          target_roles: null,
+          is_pinned: false,
+          expires_at: null,
+        },
+  });
+
+  const createMutation = useCreateAnnouncement({ onSuccess: onClose });
+  const updateMutation = useUpdateAnnouncement(editing?.id ?? 0, { onSuccess: onClose });
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+  const mutationError = createMutation.error ?? updateMutation.error;
+  const mutationData = (createMutation.data ?? updateMutation.data) as any;
+  const apiErrorMessage =
+    mutationData && !mutationData.success ? mutationData.message : null;
+
+  const onSubmit = (values: AnnouncementFormValues): void => {
+    if (editing) {
+      updateMutation.mutate(values);
+    } else {
+      createMutation.mutate(values);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="announcement-modal-title"
+    >
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+        <h2
+          id="announcement-modal-title"
+          className="text-lg font-bold text-stone-900 mb-5"
+        >
+          {editing ? 'Edit Announcement' : 'New Announcement'}
+        </h2>
+
+        {(mutationError || apiErrorMessage) && (
+          <div
+            role="alert"
+            className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
+          >
+            {mutationError instanceof Error
+              ? mutationError.message
+              : apiErrorMessage ?? 'An error occurred'}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+          <div>
+            <label htmlFor="ann-title" className="block text-sm font-medium text-stone-700 mb-1">
+              Title <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <input
+              id="ann-title"
+              type="text"
+              {...register('title')}
+              className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-500"
+            />
+            {errors.title && (
+              <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="ann-body" className="block text-sm font-medium text-stone-700 mb-1">
+              Body <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="ann-body"
+              rows={6}
+              {...register('body')}
+              className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-500 resize-y"
+            />
+            {errors.body && (
+              <p className="mt-1 text-xs text-red-600">{errors.body.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="ann-image" className="block text-sm font-medium text-stone-700 mb-1">
+              Image URL
+            </label>
+            <input
+              id="ann-image"
+              type="url"
+              {...register('image_url', {
+                setValueAs: (v: string) => (v === '' ? null : v),
+              })}
+              className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="ann-expires" className="block text-sm font-medium text-stone-700 mb-1">
+              Expires At
+            </label>
+            <input
+              id="ann-expires"
+              type="date"
+              {...register('expires_at', {
+                setValueAs: (v: string) => (v === '' ? null : v),
+              })}
+              className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="ann-pinned"
+              type="checkbox"
+              {...register('is_pinned')}
+              className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+            />
+            <label htmlFor="ann-pinned" className="text-sm font-medium text-stone-700">
+              Pinned
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isPending}
+              className="px-4 py-2 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-stone-900 rounded-lg hover:bg-stone-700 disabled:opacity-50 transition-colors"
+            >
+              {isPending ? 'Saving...' : editing ? 'Save Changes' : 'Create'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function AnnouncementsPage() {
     const { hasPermission } = useAuth();
-    const { location } = useRouterState();
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [exportOpen, setExportOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const [modal, setModal] = useState<AnnouncementModalMode>(null);
 
-    const handleExport = (format: 'pdf' | 'docx' | 'svg' | 'html') => {
-        console.log(`Exporting as ${format}`);
-    };
+    const canCreateAnn = hasPermission('marketing.create');
+    const canUpdateAnn = hasPermission('marketing.update');
+    const canDeleteAnn = hasPermission('marketing.delete');
 
-    const filters: ProductFilters = {
+    const filters = {
         per_page: 15,
         page,
         search: search || undefined,
     };
 
-    const { data, isLoading, isError } = useProducts(filters);
-    const canCreate = hasPermission('products.create');
+    const { data, isLoading, isError } = useAnnouncements(filters);
+    const deleteMutation = useDeleteAnnouncement();
+    const publishMutation = usePublishAnnouncement();
+    const unpublishMutation = useUnpublishAnnouncement();
+
+    const handleExport = (format: 'pdf' | 'docx' | 'svg' | 'html') => {
+        console.log(`Exporting as ${format}`);
+    };
+
+    const handleDelete = (a: Announcement): void => {
+        if (!window.confirm(`Delete announcement "${a.title}"? This cannot be undone.`)) {
+            return;
+        }
+        deleteMutation.mutate(a.id);
+    };
+
+    const handlePublishToggle = (a: Announcement): void => {
+        if (a.is_published) {
+            unpublishMutation.mutate(a.id);
+        } else {
+            publishMutation.mutate(a.id);
+        }
+    };
+
     const result = data?.success ? data.data : null;
     const totalPages = result?.pagination.last_page ?? 1;
     const currentPage = result?.pagination.current_page ?? page;
@@ -70,87 +277,100 @@ export default function ProductsPage() {
     }
 
     const columns = [
-        columnHelper.accessor('name', {
+        columnHelper.accessor('title', {
             header: () => (
                 <div className="flex items-center gap-1">
-                    Product Name
+                    Announcement Title
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-300">
                         <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
                 </div>
             ),
-            cell: (info) => {
-                const product = info.row.original;
-                const primaryImage = product.media?.find((m) => m.is_primary)?.url ?? product.media?.[0]?.url;
-                return (
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md overflow-hidden bg-stone-100 shrink-0">
-                            {primaryImage ? (
-                                <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full bg-stone-200" />
-                            )}
-                        </div>
-                        <p className="text-sm text-stone-800 font-medium truncate max-w-[240px]">{product.name}</p>
+            cell: (info) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md bg-stone-100 flex items-center justify-center shrink-0">
+                        <HugeiconsIcon icon={Megaphone01Icon} size={14} className="text-stone-500" />
                     </div>
-                );
-            },
+                    <p className="text-sm text-stone-800 font-medium truncate max-w-[300px]">{info.getValue()}</p>
+                </div>
+            ),
         }),
-        columnHelper.accessor('category.name', {
-            id: 'collection',
-            header: 'Collection',
-            cell: (info) => <span className="text-sm text-stone-500">{info.getValue() ?? '—'}</span>,
+        columnHelper.accessor('is_pinned', {
+            header: 'Pinned',
+            cell: (info) => (
+                <span className={cn(
+                    "inline-flex text-[10px] px-2 py-0.5 rounded-full font-bold uppercase",
+                    info.getValue() ? "bg-amber-50 text-amber-700 border border-amber-200" : "text-stone-400"
+                )}>
+                    {info.getValue() ? 'Pinned' : 'No'}
+                </span>
+            ),
         }),
-        columnHelper.display({
-            id: 'variants',
-            header: 'Size Variants',
-            cell: (info) => {
-                const product = info.row.original;
-                const activeVariants = product.variants?.filter((v: any) => v.is_active) ?? [];
-                const sizes = activeVariants.map((v) => v.size ?? v.name).filter(Boolean).join(' / ');
-                return <span className="text-sm text-stone-500">{sizes || '—'}</span>;
-            },
+        columnHelper.accessor('is_published', {
+            header: 'Status',
+            cell: (info) => (
+                <span className={cn(
+                    "inline-flex text-[10px] px-2 py-0.5 rounded-full font-bold uppercase",
+                    info.getValue() ? "bg-green-50 text-green-700 border border-green-200" : "bg-stone-50 text-stone-500 border border-stone-200"
+                )}>
+                    {info.getValue() ? 'Published' : 'Draft'}
+                </span>
+            ),
         }),
-        columnHelper.display({
-            id: 'price',
-            header: 'Price (₱)',
-            cell: (info) => {
-                const product = info.row.original;
-                const activeVariants = product.variants?.filter((v: any) => v.is_active) ?? [];
-                const lowestPrice = activeVariants.length > 0
-                    ? Math.min(...activeVariants.map((v) => {
-                        const retail = v.pricing?.find((p) => p.tier === 'RETAIL' && p.is_active);
-                        return retail ? parseFloat(retail.price) : 0;
-                    }))
-                    : null;
-                return (
-                    <span className="text-sm text-stone-800 font-medium">
-                        {lowestPrice !== null ? `₱${lowestPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}` : '—'}
-                    </span>
-                );
-            },
+        columnHelper.accessor('expires_at', {
+            header: 'Expires',
+            cell: (info) => <span className="text-sm text-stone-500">{info.getValue() ? new Date(info.getValue()!).toLocaleDateString() : 'No expiry'}</span>,
         }),
         columnHelper.display({
             id: 'actions',
             header: () => <div className="text-right">Action</div>,
-            cell: (info) => <ProductRow product={info.row.original} isOnlyActions />,
+            cell: (info) => {
+                const a = info.row.original;
+                return (
+                    <div className="flex justify-end gap-3 text-xs font-semibold">
+                        {canUpdateAnn && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setModal({ edit: a })}
+                                    className="text-stone-400 hover:text-stone-700 transition-colors"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handlePublishToggle(a)}
+                                    disabled={publishMutation.isPending || unpublishMutation.isPending}
+                                    className="text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-50"
+                                >
+                                    {a.is_published ? 'Unpublish' : 'Publish'}
+                                </button>
+                            </>
+                        )}
+                        {canDeleteAnn && (
+                            <button
+                                type="button"
+                                onClick={() => handleDelete(a)}
+                                disabled={deleteMutation.isPending}
+                                className="text-stone-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                            >
+                                Delete
+                            </button>
+                        )}
+                    </div>
+                );
+            },
         }),
     ];
 
     const table = useReactTable({
-        data: result?.products ?? [],
+        data: result?.announcements ?? [],
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const lastUpdated = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-
-    const TABS = [
-        { label: 'My Products', to: '/products' },
-        { label: 'Categories', to: '/categories' },
-        { label: 'Bundles', to: '/bundles' },
-    ];
 
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 min-h-full bg-white">
@@ -180,7 +400,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Page Title */}
-            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">All Products</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">All Announcements</h1>
 
             {/* Search + Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -199,14 +419,14 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 sm:ml-auto">
-                    {canCreate && (
-                        <Link
-                            to="/products/new"
+                    {canCreateAnn && (
+                        <Button
+                            onClick={() => setModal('create')}
                             className="flex items-center gap-1.5 bg-stone-900 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-lg hover:bg-stone-700 transition-colors h-8"
                         >
-                            <span className="hidden sm:inline">Add Product</span>
+                            <span className="hidden sm:inline">Add Announcement</span>
                             <HugeiconsIcon icon={Add01Icon} size={14} />
-                        </Link>
+                        </Button>
                     )}
                     <Button variant="outline" size="sm" className="flex items-center gap-1.5 border-stone-200 text-stone-600">
                         <span className="hidden sm:inline">Import</span>
@@ -222,44 +442,25 @@ export default function ProductsPage() {
                             />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" side="bottom" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0">
-                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Price')}>By Price</DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Name')}>By Name</DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Bundle')}>By Bundle</DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Category')}>By Category</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Title')}>By Title</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Status')}>By Status</DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Date')}>By Date</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                </div>
-            </div>
-
-            {/* Tabs — real navigation */}
-            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-                <div className="flex items-center gap-0 border-b border-stone-200 min-w-max sm:min-w-0">
-                    {TABS.map((tab) => (
-                        <Link
-                            key={tab.label}
-                            to={tab.to}
-                            className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${location.pathname === tab.to
-                                ? 'border-stone-900 text-stone-900'
-                                : 'border-transparent text-stone-400 hover:text-stone-700'
-                                }`}
-                        >
-                            {tab.label}
-                        </Link>
-                    ))}
                 </div>
             </div>
 
             {/* Loading */}
             {isLoading && (
                 <div className="py-16 text-center text-sm text-stone-400">
-                    Loading products...
+                    Loading announcements...
                 </div>
             )}
 
             {/* Error */}
             {isError && (
                 <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                    Failed to load products. Please try again.
+                    Failed to load announcements. Please try again.
                 </div>
             )}
 
@@ -275,9 +476,7 @@ export default function ProductsPage() {
                                             <th
                                                 key={header.id}
                                                 className={`pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 
-                                                    ${header.id === 'name' ? 'pl-4 sm:pl-0' : ''}
-                                                    ${header.id === 'collection' ? 'hidden sm:table-cell' : ''}
-                                                    ${header.id === 'variants' ? 'hidden md:table-cell' : ''}
+                                                    ${header.id === 'title' ? 'pl-4 sm:pl-0' : ''}
                                                     ${header.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
                                                 `}
                                             >
@@ -296,7 +495,7 @@ export default function ProductsPage() {
                                 {table.getRowModel().rows.length === 0 ? (
                                     <tr>
                                         <td colSpan={columns.length} className="py-16 text-center text-stone-400">
-                                            No products found
+                                            No announcements found
                                         </td>
                                     </tr>
                                 ) : (
@@ -306,8 +505,6 @@ export default function ProductsPage() {
                                                 <td
                                                     key={cell.id}
                                                     className={`py-3.5 pr-6 
-                                                        ${cell.column.id === 'collection' ? 'hidden sm:table-cell' : ''}
-                                                        ${cell.column.id === 'variants' ? 'hidden md:table-cell' : ''}
                                                         ${cell.column.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
                                                     `}
                                                 >
@@ -363,6 +560,10 @@ export default function ProductsPage() {
                         </div>
                     </div>
                 </>
+            )}
+
+            {modal !== null && (
+                <AnnouncementModal mode={modal} onClose={() => setModal(null)} />
             )}
         </div>
     );

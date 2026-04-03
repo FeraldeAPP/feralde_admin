@@ -37,3 +37,10 @@ export interface UpdateUserPayload {
 export interface AssignRolesPayload {
     role_ids: number[];
 }
+
+export interface UserFilters {
+    search?: string;
+    per_page?: number;
+    page?: number;
+    status?: 'all' | 'verified' | 'unverified';
+}

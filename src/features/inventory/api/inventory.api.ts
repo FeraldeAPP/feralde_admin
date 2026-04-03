@@ -1,8 +1,8 @@
 import { client } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
-import type { InventoryItem, InventoryListData } from '../types';
+import type { InventoryItem, InventoryListData, InventoryFilters } from '../types';
 
-export async function getInventory(params?: { page?: number; per_page?: number; warehouse_id?: number }): Promise<ApiResponse<InventoryListData>> {
+export async function getInventory(params?: InventoryFilters): Promise<ApiResponse<InventoryListData>> {
     const { data } = await client.get<ApiResponse<InventoryListData>>('/inventory', { params });
     return data;
 }
