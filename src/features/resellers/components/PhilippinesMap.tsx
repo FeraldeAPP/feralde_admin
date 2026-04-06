@@ -82,11 +82,33 @@ function MapLibreGLLayer(): null {
         // Dynamic import ensures @maplibre/maplibre-gl-leaflet patches the same
         // L instance that is resolved at runtime, avoiding Vite dev-mode module
         // deduplication issues that cause L.maplibreGL to be undefined.
-        import('@maplibre/maplibre-gl-leaflet').then(() => {
+        //
+        // The style is fetched manually so that relative tile/glyph URLs can be
+        // rewritten to absolute URLs before being passed to MapLibre GL.
+        // MapLibre GL fetches tiles inside a Web Worker where relative URLs are
+        // invalid and cause "Failed to parse URL" errors.
+        Promise.all([
+            import('@maplibre/maplibre-gl-leaflet'),
+            fetch('/map-style.json?v=3').then((r) => r.json()),
+        ]).then(([, style]) => {
             if (cancelled) return;
+            const origin = window.location.origin;
+            // Rewrite relative tile URLs to absolute
+            for (const source of Object.values(style.sources as Record<string, { tiles?: string[]; data?: string }>)) {
+                if (Array.isArray(source.tiles)) {
+                    source.tiles = source.tiles.map((u: string) => u.startsWith('/') ? `${origin}${u}` : u);
+                }
+                if (typeof source.data === 'string' && source.data.startsWith('/')) {
+                    source.data = `${origin}${source.data}`;
+                }
+            }
+            // Rewrite relative glyphs URL
+            if (typeof style.glyphs === 'string' && style.glyphs.startsWith('/')) {
+                style.glyphs = `${origin}${style.glyphs}`;
+            }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             gl = (L as any).maplibreGL({
-                style: '/map-style.json?v=3',
+                style,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             });
             gl.addTo(map);
@@ -182,6 +204,8 @@ function FocusController({ focusCity, cityMeta }: FocusControllerProps): null {
 // Regional bounds: Philippines + surrounding seas + neighbor coastlines
 // Covers South China Sea (W), Philippine Sea (E), Celebes/Sulu Sea (S), Luzon Strait (N)
 const PH_BOUNDS: L.LatLngBoundsExpression = [[1.0, 108.0], [26.0, 135.0]];
+
+
 const MIN_ZOOM = 5;
 
 // Hard-enforces minZoom imperatively — Leaflet's minZoom prop alone can be
@@ -199,29 +223,19 @@ function ZoomGuard(): null {
     return null;
 }
 
-// Fits the map to Philippines on first mount. ResizeObserver fires once when the
-// container reaches its real size (flex/grid layout settle), then disconnects so
-// subsequent user zoom/pan is not overridden.
+// Re-applies the intended initial view after the GL canvas settles.
+// fitBounds is not used because Leaflet computes zoom 5 for our bounds in a
+// 700px-tall container, which zooms OUT from the desired zoom 6.
 function FitPhilippines(): null {
     const map = useMap();
     useEffect(() => {
-        let done = false;
-
-        const doFit = () => {
-            if (done) return;
-            done = true;
-            observer.disconnect();
-            clearTimeout(fallback);
+        const fit = () => {
             map.invalidateSize({ animate: false });
-            map.fitBounds(PH_BOUNDS, { padding: [40, 40], animate: false });
+            map.setView([12.8, 122.0], 6, { animate: false });
         };
-
-        const observer = new ResizeObserver(doFit);
-        observer.observe(map.getContainer());
-        // Fallback in case ResizeObserver never fires (container already correct size)
-        const fallback = setTimeout(doFit, 300);
-
-        return () => { observer.disconnect(); clearTimeout(fallback); };
+        fit();
+        const t = setTimeout(fit, 600);
+        return () => clearTimeout(t);
     }, [map]);
     return null;
 }
@@ -345,7 +359,7 @@ export default function PhilippinesMap({ stats, focusCity }: PhilippinesMapProps
                 )}
 
                 <MapContainer
-                    center={[13.0, 121.5]}
+                    center={[12.8, 122.0]}
                     zoom={6}
                     minZoom={MIN_ZOOM}
                     maxZoom={18}
