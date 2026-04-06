@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local tile data
-tileserver/*.mbtiles
-tileserver/*.pmtiles
+# Tileserver directory — large binary files, not version-controlled
+# Share the entire tileserver/ folder as a zip and place it in feralde_admin/
+tileserver/
