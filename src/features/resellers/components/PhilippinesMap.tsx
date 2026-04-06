@@ -1,8 +1,9 @@
 import type { ResellerCityStat } from '@/features/resellers/types';
-import { MapContainer, GeoJSON, Marker, TileLayer, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import type { Feature, FeatureCollection, GeoJsonObject } from 'geojson';
+import L from 'leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { GeoJSON, MapContainer, Marker, useMap } from 'react-leaflet';
 
 // Maps reseller city names (lowercase) to GADM Level 2 NAME_2 values
 const CITY_TO_GADM: Record<string, string> = {
@@ -69,6 +70,42 @@ const CITY_DISPLAY: Record<string, string> = {
 
 function displayCity(gadmName: string): string {
     return CITY_DISPLAY[gadmName] ?? gadmName;
+}
+
+function MapLibreGLLayer(): null {
+    const map = useMap();
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let gl: any = null;
+        let cancelled = false;
+
+        // Dynamic import ensures @maplibre/maplibre-gl-leaflet patches the same
+        // L instance that is resolved at runtime, avoiding Vite dev-mode module
+        // deduplication issues that cause L.maplibreGL to be undefined.
+        import('@maplibre/maplibre-gl-leaflet').then(() => {
+            if (cancelled) return;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            gl = (L as any).maplibreGL({
+                style: '/map-style.json?v=3',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            });
+            gl.addTo(map);
+            // Force Leaflet and the GL canvas to recalculate their sizes after mount
+            setTimeout(() => {
+                if (cancelled) return;
+                map.invalidateSize({ animate: false });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const glMap = gl.getMaplibreMap?.() as any;
+                if (glMap) glMap.resize();
+            }, 0);
+        });
+
+        return () => {
+            cancelled = true;
+            if (gl) map.removeLayer(gl);
+        };
+    }, [map]);
+    return null;
 }
 
 interface GeoProperties {
@@ -142,11 +179,49 @@ function FocusController({ focusCity, cityMeta }: FocusControllerProps): null {
     return null;
 }
 
-// Fits the map to Philippines bounds on mount
+// Regional bounds: Philippines + surrounding seas + neighbor coastlines
+// Covers South China Sea (W), Philippine Sea (E), Celebes/Sulu Sea (S), Luzon Strait (N)
+const PH_BOUNDS: L.LatLngBoundsExpression = [[1.0, 108.0], [26.0, 135.0]];
+const MIN_ZOOM = 5;
+
+// Hard-enforces minZoom imperatively — Leaflet's minZoom prop alone can be
+// bypassed by scroll/pinch gestures causing fractional drift below the limit.
+function ZoomGuard(): null {
+    const map = useMap();
+    useEffect(() => {
+        map.setMinZoom(MIN_ZOOM);
+        const onZoom = () => {
+            if (map.getZoom() < MIN_ZOOM) map.setZoom(MIN_ZOOM, { animate: false });
+        };
+        map.on('zoom', onZoom);
+        return () => { map.off('zoom', onZoom); };
+    }, [map]);
+    return null;
+}
+
+// Fits the map to Philippines on first mount. ResizeObserver fires once when the
+// container reaches its real size (flex/grid layout settle), then disconnects so
+// subsequent user zoom/pan is not overridden.
 function FitPhilippines(): null {
     const map = useMap();
     useEffect(() => {
-        map.fitBounds([[4.5, 116.5], [21.2, 127.0]], { padding: [10, 10] });
+        let done = false;
+
+        const doFit = () => {
+            if (done) return;
+            done = true;
+            observer.disconnect();
+            clearTimeout(fallback);
+            map.invalidateSize({ animate: false });
+            map.fitBounds(PH_BOUNDS, { padding: [40, 40], animate: false });
+        };
+
+        const observer = new ResizeObserver(doFit);
+        observer.observe(map.getContainer());
+        // Fallback in case ResizeObserver never fires (container already correct size)
+        const fallback = setTimeout(doFit, 300);
+
+        return () => { observer.disconnect(); clearTimeout(fallback); };
     }, [map]);
     return null;
 }
@@ -238,7 +313,7 @@ export default function PhilippinesMap({ stats, focusCity }: PhilippinesMapProps
 
     return (
         <div className="space-y-2">
-            <div className="relative rounded-xl border border-slate-200 overflow-hidden" style={{ height: 640 }}>
+            <div className="relative rounded-xl border border-slate-200 overflow-hidden" style={{ height: 700 }}>
 
                 {/* City detail panel */}
                 {selected && (
@@ -270,19 +345,18 @@ export default function PhilippinesMap({ stats, focusCity }: PhilippinesMapProps
                 )}
 
                 <MapContainer
-                    center={[12.9, 121.8]}
+                    center={[13.0, 121.5]}
                     zoom={6}
-                    minZoom={6}
-                    maxBounds={[[4.0, 115.5], [21.8, 128.0]]}
-                    maxBoundsViscosity={1.0}
-                    style={{ height: '100%', width: '100%', background: '#f8fafc' }}
+                    minZoom={MIN_ZOOM}
+                    maxZoom={18}
+                    maxBounds={PH_BOUNDS}
+                    maxBoundsViscosity={0.8}
+                    style={{ height: '100%', width: '100%' }}
                     zoomControl
                 >
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
+                    <MapLibreGLLayer />
                     <FitPhilippines />
+                    <ZoomGuard />
                     <FocusController focusCity={focusCity} cityMeta={cityMeta} />
                     {geoData && (
                         <GeoJSON

@@ -19,6 +19,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Override Leaflet and MapLibre GL default backgrounds so
+   uncovered tile areas show ocean blue, not gray or beige. */
+.leaflet-container,
+.maplibregl-map,
+.maplibregl-canvas-container {
+  background: hsl(205, 56%, 73%) !important;
+}
+
+/* Force MapLibre GL canvas to fill the full Leaflet pane size.
+   maplibre-gl-leaflet does not always resize the canvas correctly. */
+.maplibregl-canvas-container,
+.maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 :root {
   --radius: 0.625rem;
   --card: oklch(1 0 0);

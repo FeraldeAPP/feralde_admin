@@ -5,14 +5,32 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: ['leaflet', 'maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+  preview: {
+    allowedHosts: ['feralde-admin.chysev.cloud'],
+    proxy: {
+      '/tiles': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tiles/, ''),
+      },
+    },
+  },
   server: {
     port: 3001,
     proxy: {
+      '/tiles': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tiles/, ''),
+      },
       '/api/auth': {
         target: 'http://127.0.0.1:8100',
         changeOrigin: true,
@@ -42,8 +60,5 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-  },
-  preview: {
-    allowedHosts: ['feralde-admin.chysev.cloud'],
   },
 })
