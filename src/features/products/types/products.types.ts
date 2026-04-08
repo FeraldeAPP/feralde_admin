@@ -19,6 +19,7 @@ export interface ProductVariant {
     is_active: boolean;
     sort_order: number;
     pricing?: VariantPricing[];
+    product?: Product;
     created_at: string;
     updated_at: string;
 }

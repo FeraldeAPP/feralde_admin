@@ -9,17 +9,42 @@ import {
     unsuspendDistributor,
 } from '@/features/distributors/api';
 import type { Distributor, DistributorRank, NetworkReseller } from '@/features/distributors/types';
+import {
+    ArrowLeft01Icon,
+    Location01Icon,
+    Link01Icon,
+    UserIcon,
+    Task01Icon,
+    CheckmarkCircle01Icon,
+    AlertCircleIcon,
+    Coins01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 const RANK_COLORS: Record<DistributorRank, string> = {
-  STARTER: 'bg-gray-100 text-gray-600',
-  BRONZE: 'bg-orange-100 text-orange-700',
-  SILVER: 'bg-slate-100 text-slate-600',
-  GOLD: 'bg-yellow-100 text-yellow-700',
-  PLATINUM: 'bg-cyan-100 text-cyan-700',
-  DIAMOND: 'bg-indigo-100 text-indigo-700',
+  STARTER: 'bg-[#F3F4F6] text-[#374151]',
+  BRONZE: 'bg-[#FFEDD5] text-[#9A3412]',
+  SILVER: 'bg-[#F1F5F9] text-[#475569]',
+  GOLD: 'bg-[#FEF9C3] text-[#854D0E]',
+  PLATINUM: 'bg-[#CFFAFE] text-[#0E7490]',
+  DIAMOND: 'bg-[#EEF2FF] text-[#4338CA]',
 };
 
 function getDistributorStatus(d: Distributor): 'pending' | 'approved' | 'rejected' | 'suspended' {
@@ -128,34 +153,49 @@ export default function DistributorDetailPage(): React.ReactElement {
   const assignCityError = assignCity.error instanceof Error ? assignCity.error.message : null;
 
   return (
-    <div className="p-6 space-y-6" style={{ scrollbarGutter: 'stable' }}>
+    <div className="flex flex-col gap-6 p-2 font-[var(--font-bricolage)] text-[#393939]" style={{ scrollbarGutter: 'stable' }}>
 
       {/* Back + Header */}
-      <header className="space-y-1">
-        <nav>
-          <Link to="/distributors" className="text-xs text-indigo-600 hover:underline">
-            &larr; Back to Distributors
-          </Link>
-        </nav>
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-gray-900 font-mono">{dist.distributor_code}</h1>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${RANK_COLORS[dist.rank]}`}>
-            {dist.rank}
-          </span>
-          {status === 'suspended' && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700">Suspended</span>
-          )}
-          {status === 'rejected' && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Rejected</span>
-          )}
-          {status === 'pending' && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Pending Approval</span>
-          )}
-          {status === 'approved' && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700">Approved</span>
-          )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
+        <div>
+          <nav className="mb-1">
+            <Link to="/distributors" className="group flex items-center gap-1.5 text-[12px] text-[#A5A5A5] font-medium hover:text-[#393939] transition-colors">
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+              Back to Distributors
+            </Link>
+          </nav>
+          <div className="flex items-center gap-3 mt-1">
+            <h1 className="text-2xl font-bold tracking-tight text-[#393939]">{dist.distributor_code}</h1>
+            <Badge variant="secondary" className={`text-[10px] font-bold px-2 py-0 h-5 rounded-md border-none ${RANK_COLORS[dist.rank]}`}>
+              {dist.rank}
+            </Badge>
+            {status === 'suspended' && (
+              <Badge variant="secondary" className="bg-[#FEF2F2] text-[#EF4444] text-[10px] font-bold px-2 py-0 h-5 rounded-md border-none">
+                Suspended
+              </Badge>
+            )}
+            {status === 'rejected' && (
+              <Badge variant="secondary" className="bg-[#F3F4F6] text-[#6B7280] text-[10px] font-bold px-2 py-0 h-5 rounded-md border-none">
+                Rejected
+              </Badge>
+            )}
+            {status === 'pending' && (
+              <Badge variant="secondary" className="bg-[#FFFBEB] text-[#F59E0B] text-[10px] font-bold px-2 py-0 h-5 rounded-md border-none">
+                Pending Approval
+              </Badge>
+            )}
+            {status === 'approved' && (
+              <Badge variant="secondary" className="bg-[#ECFDF5] text-[#10B981] text-[10px] font-bold px-2 py-0 h-5 rounded-md border-none">
+                Approved
+              </Badge>
+            )}
+          </div>
         </div>
-      </header>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-[#A5A5A5] font-medium">Joined {new Date(dist.created_at).toLocaleDateString()}</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -163,336 +203,411 @@ export default function DistributorDetailPage(): React.ReactElement {
         <div className="lg:col-span-1 space-y-5">
 
           {/* Info card */}
-          <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">Profile</h2>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Referral Code</dt>
-                <dd className="font-mono text-gray-800">{dist.referral_code ?? '—'}</dd>
+          <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+            <CardHeader className="flex flex-row items-center gap-3 pb-4 px-5 pt-5">
+              <div className="h-8 w-8 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] shrink-0">
+                <HugeiconsIcon icon={UserIcon} size={16} className="text-[#393939]" />
               </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Personal Sales</dt>
-                <dd className="font-mono text-gray-800">
-                  ₱{parseFloat(dist.total_personal_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Network Sales</dt>
-                <dd className="font-mono text-gray-800">
-                  ₱{parseFloat(dist.total_network_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Joined</dt>
-                <dd className="text-gray-700">{new Date(dist.created_at).toLocaleDateString()}</dd>
-              </div>
-              {dist.approved_at && (
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Approved</dt>
-                  <dd className="text-gray-700">{new Date(dist.approved_at).toLocaleDateString()}</dd>
+              <CardTitle className="text-[15px] font-bold text-[#393939]">Profile</CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <dl className="space-y-3 text-[13px]">
+                <div className="flex justify-between items-center">
+                  <dt className="text-[#A5A5A5] font-medium">Referral Code</dt>
+                  <dd className="font-mono font-bold text-[#393939] bg-[#F9F9F9] px-2 py-0.5 rounded border border-[#F2F2F2]">
+                    {dist.referral_code ?? '—'}
+                  </dd>
                 </div>
-              )}
-            </dl>
-          </section>
+                <div className="flex justify-between items-center">
+                  <dt className="text-[#A5A5A5] font-medium">Personal Sales</dt>
+                  <dd className="font-bold text-[#393939]">
+                    ₱{parseFloat(dist.total_personal_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                  </dd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <dt className="text-[#A5A5A5] font-medium">Network Sales</dt>
+                  <dd className="font-bold text-[#393939]">
+                    ₱{parseFloat(dist.total_network_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                  </dd>
+                </div>
+                <div className="pt-2 mt-2 border-t border-[#F2F2F2] flex justify-between items-center">
+                  <dt className="text-[#A5A5A5] font-medium">Approved Date</dt>
+                  <dd className="text-[#393939] font-medium">
+                    {dist.approved_at ? new Date(dist.approved_at).toLocaleDateString() : 'Pending'}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
 
           {/* City Assignment */}
-          <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">City Assignment</h2>
-            <p className="text-xs text-gray-500">
-              One distributor per city. Resellers in the assigned city automatically join this distributor's network.
-            </p>
-
-            {dist.assigned_city ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-2">
-                  <span className="text-sm font-medium text-indigo-800">{dist.assigned_city}</span>
-                  <button
-                    type="button"
-                    onClick={() => unassignCity.mutate()}
-                    disabled={unassignCity.isPending}
-                    className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
-                  >
-                    {unassignCity.isPending ? 'Removing…' : 'Remove'}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400">
-                  Removing the city assignment will revert city-based resellers to direct ordering.
+          <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+            <CardHeader className="flex flex-row items-center gap-3 pb-2 px-5 pt-5">
+              <div className="h-8 w-8 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] shrink-0">
+                <HugeiconsIcon icon={Location01Icon} size={16} className="text-[#393939]" />
+              </div>
+              <div>
+                <CardTitle className="text-[15px] font-bold text-[#393939]">City Assignment</CardTitle>
+                <p className="text-[11px] text-[#A5A5A5] font-medium leading-tight mt-0.5">
+                  One distributor per city territory.
                 </p>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-amber-600 font-medium">No city assigned — this distributor has no city territory.</p>
-                {!showCityForm ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowCityForm(true)}
-                    className="w-full rounded-lg border border-dashed border-indigo-300 py-2 text-xs text-indigo-600 hover:border-indigo-500 hover:bg-indigo-50"
-                  >
-                    + Assign City
-                  </button>
-                ) : (
-                  <form
-                    onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-                      e.preventDefault();
-                      if (cityInput.trim()) assignCity.mutate(cityInput.trim());
-                    }}
-                    className="space-y-2"
-                  >
-                    <label htmlFor="city-input" className="sr-only">City name</label>
-                    <input
-                      id="city-input"
-                      type="text"
-                      value={cityInput}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCityInput(e.target.value)}
-                      placeholder="e.g. Makati"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none"
-                    />
-                    {assignCityError && (
-                      <p className="text-xs text-red-600">{assignCityError}</p>
-                    )}
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        disabled={assignCity.isPending || !cityInput.trim()}
-                        className="flex-1 rounded-lg bg-indigo-600 py-2 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-                      >
-                        {assignCity.isPending ? 'Assigning…' : 'Assign'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setShowCityForm(false); setCityInput(''); }}
-                        className="flex-1 rounded-lg border border-gray-300 py-2 text-xs text-gray-600 hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-          </section>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 pt-2">
+              {dist.assigned_city ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-xl bg-[#F0F9FF] border border-[#B9E6FE] px-4 py-3">
+                    <span className="text-[14px] font-bold text-[#026AA2]">{dist.assigned_city}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => unassignCity.mutate()}
+                      disabled={unassignCity.isPending}
+                      className="h-8 px-3 text-[12px] font-bold text-[#D92D20] hover:text-[#B42318] hover:bg-[#FEF3F2] rounded-lg"
+                    >
+                      {unassignCity.isPending ? 'Removing…' : 'Remove'}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-[#A5A5A5] font-medium italic">
+                    Removing this will revert city resellers to direct ordering.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-2">
+                  <div className="flex items-center gap-2 text-[12px] text-[#F97316] font-bold bg-[#FFF7ED] px-3 py-2 rounded-lg border border-[#FFEDD5]">
+                    <HugeiconsIcon icon={AlertCircleIcon} size={14} />
+                    No city territory assigned.
+                  </div>
+                  {!showCityForm ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCityForm(true)}
+                      className="w-full rounded-xl border-dashed border-[#F2F2F2] h-10 text-[13px] font-bold text-[#393939] hover:bg-[#FAFAFA] shadow-none"
+                    >
+                      + Assign City Territory
+                    </Button>
+                  ) : (
+                    <form
+                      onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+                        e.preventDefault();
+                        if (cityInput.trim()) assignCity.mutate(cityInput.trim());
+                      }}
+                      className="space-y-3"
+                    >
+                      <Input
+                        value={cityInput}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCityInput(e.target.value)}
+                        placeholder="Enter City Name (e.g. Makati)"
+                        className="h-10 border-[#F2F2F2] rounded-xl text-[13px] focus-visible:ring-0 shadow-none px-4"
+                      />
+                      {assignCityError && (
+                        <p className="text-[11px] text-[#EF4444] font-medium">{assignCityError}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          type="submit"
+                          disabled={assignCity.isPending || !cityInput.trim()}
+                          className="flex-1 rounded-xl bg-[#393939] text-white hover:bg-[#393939]/90 h-10 text-[13px] font-bold shadow-none"
+                        >
+                          {assignCity.isPending ? 'Assigning…' : 'Assign'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => { setShowCityForm(false); setCityInput(''); }}
+                          className="flex-1 rounded-xl border-[#F2F2F2] h-10 text-[13px] font-bold text-[#393939] shadow-none hover:bg-[#FAFAFA]"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Registration Link */}
           {dist.referral_code && (
-            <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">Registration Link</h2>
-              <p className="text-xs text-gray-500">
-                Share this link so resellers can apply to join this distributor's network. Resellers may register from any city.
-              </p>
-              {(() => {
-                const registrationUrl = `${window.location.origin}/register/reseller/${dist.referral_code}`;
-                return (
-                  <div className="space-y-2">
-                    <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 flex items-center gap-2">
-                      <span className="flex-1 text-xs font-mono text-gray-700 truncate">{registrationUrl}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(registrationUrl).then(() => {
-                            setLinkCopied(true);
-                            setTimeout(() => setLinkCopied(false), 2000);
-                          });
-                        }}
-                        className="shrink-0 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                      >
-                        {linkCopied ? 'Copied!' : 'Copy'}
-                      </button>
+            <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2 px-5 pt-5">
+                <div className="h-8 w-8 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] shrink-0">
+                  <HugeiconsIcon icon={Link01Icon} size={16} className="text-[#393939]" />
+                </div>
+                <div>
+                  <CardTitle className="text-[15px] font-bold text-[#393939]">Registration Link</CardTitle>
+                  <p className="text-[11px] text-[#A5A5A5] font-medium leading-tight mt-0.5">
+                    Share this to invite direct resellers.
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 pt-2">
+                {(() => {
+                  const registrationUrl = `${window.location.origin}/register/reseller/${dist.referral_code}`;
+                  return (
+                    <div className="space-y-3 mt-1">
+                      <div className="flex items-center gap-2 p-2 bg-[#FAFAFA] border border-[#F2F2F2] rounded-xl overflow-hidden">
+                        <span className="flex-1 text-[11px] font-mono text-[#6B7280] truncate px-1">
+                          {registrationUrl}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            void navigator.clipboard.writeText(registrationUrl).then(() => {
+                              setLinkCopied(true);
+                              setTimeout(() => setLinkCopied(false), 2000);
+                            });
+                          }}
+                          className="h-7 px-2.5 text-[11px] font-bold text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg shrink-0"
+                        >
+                          {linkCopied ? 'Copied!' : 'Copy Link'}
+                        </Button>
+                      </div>
+                      {network && (
+                        <div className="flex items-center gap-2 py-1">
+                          <div className="flex -space-x-2">
+                            {[1, 2, 3].map((_, i) => (
+                              <div key={i} className="h-5 w-5 rounded-full border-2 border-white bg-[#F2F2F2] flex items-center justify-center text-[8px] font-bold text-[#A5A5A5]">
+                                {i === 2 ? '+' : ''}
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-[#A5A5A5] font-medium">
+                            {network.resellers.filter((r) => r.parent_distributor_id !== null).length} direct invites
+                            {network.assigned_city ? ` + ${network.resellers.filter((r) => r.parent_distributor_id === null).length} city-based` : ''}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    {network && (
-                      <p className="text-xs text-gray-400">
-                        {network.resellers.filter((r) => r.parent_distributor_id !== null).length} direct registrations
-                        {network.assigned_city ? ` + ${network.resellers.filter((r) => r.parent_distributor_id === null).length} city-based` : ''}
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-            </section>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           )}
 
           {/* Actions */}
-          <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">Actions</h2>
+          <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+            <CardHeader className="flex flex-row items-center gap-3 pb-3 px-5 pt-5 border-b border-transparent">
+              <div className="h-8 w-8 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] shrink-0">
+                <HugeiconsIcon icon={Task01Icon} size={16} className="text-[#393939]" />
+              </div>
+              <CardTitle className="text-[15px] font-bold text-[#393939]">Management Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 pt-4">
+              {activeAction && (
+                <form
+                  onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+                    e.preventDefault();
+                    if (activeAction === 'reject') reject.mutate();
+                    else suspend.mutate();
+                  }}
+                  className="space-y-3 mb-4 pb-4 border-b border-[#F2F2F2]"
+                >
+                  <div className="flex items-center gap-2 text-[12px] font-bold text-[#393939]">
+                    <HugeiconsIcon icon={AlertCircleIcon} size={14} className="text-[#F97316]" />
+                    {activeAction === 'reject' ? 'Provide rejection reason' : 'Provide suspension reason'}
+                  </div>
+                  <Input
+                    value={reasonInput}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonInput(e.target.value)}
+                    placeholder="Type reason here (optional)"
+                    className="h-10 border-[#F2F2F2] rounded-xl text-[13px] focus-visible:ring-0 shadow-none"
+                  />
+                  <div className="flex gap-2 text-white">
+                    <Button
+                      type="submit"
+                      disabled={reject.isPending || suspend.isPending}
+                      className={`flex-1 rounded-xl h-10 text-[13px] font-bold shadow-none ${
+                        activeAction === 'reject' ? 'bg-[#374151] hover:bg-[#1F2937]' : 'bg-[#D92D20] hover:bg-[#B42318]'
+                      }`}
+                    >
+                      {activeAction === 'reject'
+                        ? (reject.isPending ? 'Rejecting…' : 'Confirm Reject')
+                        : (suspend.isPending ? 'Suspending…' : 'Confirm Suspend')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => { setActiveAction(null); setReasonInput(''); }}
+                      className="flex-1 rounded-xl border-[#F2F2F2] h-10 text-[13px] font-bold text-[#393939] shadow-none hover:bg-[#FAFAFA]"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
 
-            {/* Reason form for reject/suspend */}
-            {activeAction && (
-              <form
-                onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-                  e.preventDefault();
-                  if (activeAction === 'reject') reject.mutate();
-                  else suspend.mutate();
-                }}
-                className="space-y-2 pb-3 border-b border-gray-100"
-              >
-                <label htmlFor="reason-input" className="text-xs text-gray-500">
-                  {activeAction === 'reject' ? 'Rejection reason (optional)' : 'Suspension reason (optional)'}
-                </label>
-                <input
-                  id="reason-input"
-                  type="text"
-                  value={reasonInput}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonInput(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none"
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    disabled={reject.isPending || suspend.isPending}
-                    className={`flex-1 rounded-lg py-2 text-xs font-medium text-white disabled:opacity-50 ${
-                      activeAction === 'reject' ? 'bg-gray-700 hover:bg-gray-900' : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {activeAction === 'reject'
-                      ? (reject.isPending ? 'Rejecting…' : 'Confirm Reject')
-                      : (suspend.isPending ? 'Suspending…' : 'Confirm Suspend')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setActiveAction(null); setReasonInput(''); }}
-                    className="flex-1 rounded-lg border border-gray-300 py-2 text-xs text-gray-600 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
+              <div className="flex flex-col gap-2.5">
+                {status === 'pending' && (
+                  <>
+                    <Button
+                      onClick={() => approve.mutate()}
+                      disabled={approve.isPending || activeAction !== null}
+                      className="w-full rounded-xl bg-[#10B981] text-white hover:bg-[#059669] h-11 text-[13px] font-bold shadow-none border-none"
+                    >
+                      {approve.isPending ? 'Approving…' : 'Approve Application'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveAction('reject')}
+                      disabled={activeAction !== null}
+                      className="w-full rounded-xl border-[#F2F2F2] h-11 text-[13px] font-bold text-[#374151] shadow-none hover:bg-[#FAFAFA]"
+                    >
+                      Reject Application
+                    </Button>
+                  </>
+                )}
 
-            <div className="flex flex-col gap-2">
-              {status === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => approve.mutate()}
-                    disabled={approve.isPending}
-                    className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    {approve.isPending ? 'Approving…' : 'Approve Application'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveAction('reject')}
+                {status === 'approved' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveAction('suspend')}
                     disabled={activeAction !== null}
-                    className="w-full rounded-lg border border-gray-300 py-2 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="w-full rounded-xl border-[#FDA29B] h-11 text-[13px] font-bold text-[#D92D20] shadow-none hover:bg-[#FEF3F2] hover:border-[#F97066]"
                   >
-                    Reject Application
-                  </button>
-                </>
-              )}
+                    Suspend Distributor
+                  </Button>
+                )}
 
-              {status === 'approved' && (
-                <button
-                  type="button"
-                  onClick={() => setActiveAction('suspend')}
-                  disabled={activeAction !== null}
-                  className="w-full rounded-lg border border-red-300 py-2 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
-                >
-                  Suspend Distributor
-                </button>
-              )}
+                {status === 'suspended' && (
+                  <Button
+                    onClick={() => unsuspend.mutate()}
+                    disabled={unsuspend.isPending || activeAction !== null}
+                    className="w-full rounded-xl bg-[#10B981] text-white hover:bg-[#059669] h-11 text-[13px] font-bold shadow-none border-none"
+                  >
+                    {unsuspend.isPending ? 'Unsuspending…' : 'Unsuspend Distributor'}
+                  </Button>
+                )}
 
-              {status === 'suspended' && (
-                <button
-                  type="button"
-                  onClick={() => unsuspend.mutate()}
-                  disabled={unsuspend.isPending}
-                  className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {unsuspend.isPending ? 'Unsuspending…' : 'Unsuspend Distributor'}
-                </button>
-              )}
-
-              {status === 'rejected' && (
-                <button
-                  type="button"
-                  onClick={() => approve.mutate()}
-                  disabled={approve.isPending}
-                  className="w-full rounded-lg bg-emerald-600 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {approve.isPending ? 'Approving…' : 'Approve (Override Rejection)'}
-                </button>
-              )}
-            </div>
-          </section>
+                {status === 'rejected' && (
+                  <Button
+                    onClick={() => approve.mutate()}
+                    disabled={approve.isPending || activeAction !== null}
+                    className="w-full rounded-xl bg-[#10B981] text-white hover:bg-[#059669] h-11 text-[13px] font-bold shadow-none border-none"
+                  >
+                    {approve.isPending ? 'Approving…' : 'Approve (Override Rejection)'}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right column: network resellers */}
         <div className="lg:col-span-2">
-          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-700">
-                Network Resellers
-                {network && (
-                  <span className="ml-2 text-xs font-normal text-gray-400">({network.total} total)</span>
-                )}
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Includes resellers directly invited by this distributor and resellers in their assigned city.
+          <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+            <CardHeader className="flex flex-col gap-1 pb-4 px-6 pt-6 border-b border-[#F2F2F2]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
+                    <HugeiconsIcon icon={Coins01Icon} size={18} className="text-[#393939]" />
+                  </div>
+                  <CardTitle className="text-[16px] font-bold text-[#393939]">
+                    Network Resellers
+                    {network && (
+                      <span className="ml-2 text-[12px] font-medium text-[#A5A5A5]">({network.total} total)</span>
+                    )}
+                  </CardTitle>
+                </div>
+              </div>
+              <p className="text-[12px] text-[#A5A5A5] font-medium mt-1">
+                Direct invites and city-based automatic registrations in this network.
               </p>
-            </div>
+            </CardHeader>
 
             {!network ? (
-              <div className="px-4 py-10 text-center text-sm text-gray-400">Loading network…</div>
+              <div className="px-6 py-20 text-center">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F9F9F9] border border-[#F2F2F2] mb-4">
+                  <HugeiconsIcon icon={UserIcon} size={24} className="text-[#A5A5A5] animate-pulse" />
+                </div>
+                <p className="text-[14px] text-[#A5A5A5] font-medium">Loading network data…</p>
+              </div>
             ) : network.resellers.length === 0 ? (
-              <div className="px-4 py-10 text-center text-sm text-gray-400">
-                No resellers in this network yet.
-                {dist.assigned_city
-                  ? ` Resellers who register in ${dist.assigned_city} will appear here automatically.`
-                  : ' Assign a city or invite resellers directly using your referral code.'}
+              <div className="px-6 py-20 text-center">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#FAFAFA] border border-[#F2F2F2] mb-4">
+                  <HugeiconsIcon icon={UserIcon} size={24} className="text-[#D1D1D1]" />
+                </div>
+                <p className="text-[14px] text-[#393939] font-bold">No resellers yet</p>
+                <p className="text-[12px] text-[#A5A5A5] font-medium mt-1 max-w-[280px] mx-auto">
+                  {dist.assigned_city
+                    ? `Resellers registering in ${dist.assigned_city} will automatically appear here.`
+                    : 'Assign a city territory or share the referral code to start growing the network.'}
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100 text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      <th className="px-5 py-3 text-left">Code</th>
-                      <th className="px-5 py-3 text-left">City</th>
-                      <th className="px-5 py-3 text-center">Link Type</th>
-                      <th className="px-5 py-3 text-right">Sales</th>
-                      <th className="px-5 py-3 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-none hover:bg-transparent">
+                      <TableHead className="px-6 h-12 text-[12px] font-medium text-[#A5A5A5] uppercase tracking-wider">Reseller Code</TableHead>
+                      <TableHead className="px-6 h-12 text-[12px] font-medium text-[#A5A5A5] uppercase tracking-wider">City</TableHead>
+                      <TableHead className="px-6 h-12 text-[12px] font-medium text-[#A5A5A5] uppercase tracking-wider text-center">Link Type</TableHead>
+                      <TableHead className="px-6 h-12 text-[12px] font-medium text-[#A5A5A5] uppercase tracking-wider text-right">Total Sales</TableHead>
+                      <TableHead className="px-6 h-12 text-[12px] font-medium text-[#A5A5A5] uppercase tracking-wider text-center">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {network.resellers.map((r: NetworkReseller) => {
                       const linkType = resellerLinkType(r, network.assigned_city);
                       return (
-                        <tr key={r.id} className="hover:bg-gray-50">
-                          <td className="px-5 py-3 font-mono font-medium text-gray-900">{r.reseller_code}</td>
-                          <td className="px-5 py-3 text-gray-600">
-                            {r.city ?? <span className="text-gray-300">—</span>}
-                          </td>
-                          <td className="px-5 py-3 text-center">
+                        <TableRow key={r.id} className="border-t border-[#F2F2F2] hover:bg-[#FAFAFA]/50 transition-colors">
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8 rounded-lg">
+                                <AvatarFallback className="bg-[#F2F2F2] text-[10px] font-bold text-[#393939]">
+                                  {r.reseller_code.substring(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-[13px] font-bold text-[#393939] font-mono">{r.reseller_code}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-[13px] font-medium text-[#6B7280]">
+                            {r.city ?? <span className="text-[#D1D5DB]">—</span>}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-center">
                             {linkType === 'both' && (
-                              <span className="inline-flex text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
+                              <Badge variant="secondary" className="bg-[#F5F3FF] text-[#7B61FF] text-[10px] font-bold border-none px-2">
                                 Direct + City
-                              </span>
+                              </Badge>
                             )}
                             {linkType === 'direct' && (
-                              <span className="inline-flex text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
+                              <Badge variant="secondary" className="bg-[#EFF6FF] text-[#3B82F6] text-[10px] font-bold border-none px-2">
                                 Direct Invite
-                              </span>
+                              </Badge>
                             )}
                             {linkType === 'city' && (
-                              <span className="inline-flex text-xs px-2 py-0.5 rounded-full font-medium bg-teal-100 text-teal-700">
+                              <Badge variant="secondary" className="bg-[#F0FDF4] text-[#16A34A] text-[10px] font-bold border-none px-2">
                                 City-Based
-                              </span>
+                              </Badge>
                             )}
-                          </td>
-                          <td className="px-5 py-3 text-right font-mono text-gray-700">
-                            ₱{parseFloat(r.total_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-5 py-3 text-center text-xs">
-                            {r.approved_at
-                              ? <span className="text-emerald-600 font-medium">Approved</span>
-                              : <span className="text-amber-600 font-medium">Pending</span>}
-                          </td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-right">
+                            <span className="text-[13px] font-bold text-[#393939]">
+                              ₱{parseFloat(r.total_sales).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-center">
+                            {r.approved_at ? (
+                              <div className="flex items-center justify-center gap-1.5 text-[#10B981]">
+                                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                                <span className="text-[12px] font-bold">Approved</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1.5 text-[#F59E0B]">
+                                <HugeiconsIcon icon={AlertCircleIcon} size={14} />
+                                <span className="text-[12px] font-bold">Pending</span>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
-          </section>
+          </Card>
         </div>
       </div>
     </div>

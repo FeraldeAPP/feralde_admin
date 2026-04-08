@@ -18,7 +18,26 @@ export async function getOrder(id: number): Promise<ApiResponse<Order>> {
     return data;
 }
 
-export async function updateOrderStatus(id: number, status: OrderStatus): Promise<ApiResponse<Order>> {
-    const { data } = await client.put<ApiResponse<Order>>(`/orders/${id}`, { status });
+export async function updateOrderStatus(
+    id: number,
+    status: OrderStatus,
+    shipping_method?: string,
+    tracking_number?: string
+): Promise<ApiResponse<Order>> {
+    const { data } = await client.put<ApiResponse<Order>>(`/orders/${id}`, {
+        status,
+        shipping_method,
+        tracking_number,
+    });
+    return data;
+}
+
+export async function markOrderAsPaid(id: number): Promise<ApiResponse<Order>> {
+    const { data } = await client.post<ApiResponse<Order>>(`/orders/${id}/payments/paid`);
+    return data;
+}
+
+export async function getOrderHistory(id: number): Promise<ApiResponse<any[]>> {
+    const { data } = await client.get<ApiResponse<any[]>>(`/orders/${id}/history`);
     return data;
 }

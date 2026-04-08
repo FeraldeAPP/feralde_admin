@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { Order, OrderStatus } from '@/features/orders/types';
@@ -45,41 +45,44 @@ import { useAuth } from '@/hooks/use-auth';
 const columnHelper = createColumnHelper<Order>();
 
 const STATUS_COLORS: Record<string, { text: string; bg: string; dot: string; label: string }> = {
-    NEW: { text: 'text-green-600', bg: 'bg-green-50', dot: 'bg-green-500', label: 'Order Placed' },
-    PREPARING: { text: 'text-orange-600', bg: 'bg-orange-50', dot: 'bg-orange-500', label: 'Preparing' },
-    PACKED: { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', label: 'Ready to Pick Up' },
-    LOGISTICS: { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', label: 'For Fulfillment' },
+    PENDING: { text: 'text-green-600', bg: 'bg-green-50', dot: 'bg-green-500', label: 'Pending' },
+    CONFIRMED: { text: 'text-orange-600', bg: 'bg-orange-50', dot: 'bg-orange-500', label: 'Confirmed' },
+    PROCESSING: { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', label: 'Processing' },
+    SHIPPED: { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', label: 'Shipped' },
 };
 
 const KANBAN_COLUMNS = [
-    { id: 'NEW', label: 'New Orders' },
-    { id: 'PREPARING', label: 'Preparing' },
-    { id: 'PACKED', label: 'Packed' },
-    { id: 'LOGISTICS', label: 'Logistics' },
+    { id: 'PENDING', label: 'Pending' },
+    { id: 'CONFIRMED', label: 'Confirmed' },
+    { id: 'PROCESSING', label: 'Processing' },
+    { id: 'SHIPPED', label: 'Shipped' },
 ];
 
 const STATUS_MAP: Record<string, OrderStatus> = {
-    NEW: 'PENDING',
-    PREPARING: 'CONFIRMED',
-    PACKED: 'PROCESSING',
-    LOGISTICS: 'SHIPPED',
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    PROCESSING: 'PROCESSING',
+    SHIPPED: 'SHIPPED',
 };
 
 /** Get the Kanban column key for a given order status */
 function getKanbanColumn(status: OrderStatus): string {
-    switch (status) {
-        case 'PENDING':    return 'NEW';
-        case 'CONFIRMED':  return 'PREPARING';
-        case 'PROCESSING': return 'PACKED';
-        case 'SHIPPED':    return 'LOGISTICS';
-        default:           return 'PREPARING';
-    }
+    if (status === 'PACKED') return 'PROCESSING';
+    return status;
 }
 
-/** Resolve a display name for an order depending on its type */
 function getOrderDisplayName(order: Order): string {
     if (order.distributor) {
         return `${order.distributor.distributor_code}${order.distributor.assigned_city ? ` · ${order.distributor.assigned_city}` : ''}`;
+    }
+    if (order.billing_address) {
+        return `${order.billing_address.first_name} ${order.billing_address.last_name}`;
+    }
+    if (order.customer_name) {
+        return order.customer_name;
+    }
+    if (order.guest_email) {
+        return order.guest_email;
     }
     if (order.customer_id) {
         // customer_id is a user ID string from auth service; show it shortened
@@ -90,6 +93,7 @@ function getOrderDisplayName(order: Order): string {
 
 export default function OrdersPage(): React.ReactElement {
     const { hasPermission } = useAuth();
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [status] = useState<OrderStatus | ''>('');
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
@@ -158,10 +162,7 @@ export default function OrdersPage(): React.ReactElement {
             header: 'Status',
             cell: (info) => {
                 const s = info.getValue();
-                let config = STATUS_COLORS.NEW;
-                if (s === 'CONFIRMED') config = STATUS_COLORS.PREPARING;
-                if (s === 'PROCESSING') config = STATUS_COLORS.PACKED;
-                if (s === 'SHIPPED') config = STATUS_COLORS.LOGISTICS;
+                let config = STATUS_COLORS[s] || STATUS_COLORS.PENDING;
 
                 return (
                     <span className={cn('inline-flex text-[10px] px-2 py-0.5 rounded-md font-bold border', config.bg, config.text, 'border-stone-100')}>
@@ -214,10 +215,10 @@ export default function OrdersPage(): React.ReactElement {
     });
 
     const [localKanbanData, setLocalKanbanData] = useState<Record<string, Order[]>>({
-        NEW: [],
-        PREPARING: [],
-        PACKED: [],
-        LOGISTICS: [],
+        PENDING: [],
+        CONFIRMED: [],
+        PROCESSING: [],
+        SHIPPED: [],
     });
 
     const canCreate = hasPermission('orders.create');
@@ -229,15 +230,17 @@ export default function OrdersPage(): React.ReactElement {
 
     const kanbanData = useMemo(() => {
         const cols: Record<string, Order[]> = {
-            NEW: [],
-            PREPARING: [],
-            PACKED: [],
-            LOGISTICS: [],
+            PENDING: [],
+            CONFIRMED: [],
+            PROCESSING: [],
+            SHIPPED: [],
         };
 
         orders.forEach(order => {
             const col = getKanbanColumn(order.status);
-            cols[col].push(order);
+            if (cols[col]) {
+                cols[col].push(order);
+            }
         });
 
         return cols;
@@ -438,7 +441,11 @@ export default function OrdersPage(): React.ReactElement {
                                     </tr>
                                 ) : (
                                     table.getRowModel().rows.map(row => (
-                                        <tr key={row.id} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                                        <tr 
+                                            key={row.id} 
+                                            className="border-b border-stone-100 hover:bg-stone-50 transition-colors cursor-pointer group"
+                                            onClick={() => navigate({ to: '/orders/$id', params: { id: String(row.original.id) } })}
+                                        >
                                             {row.getVisibleCells().map(cell => (
                                                 <td
                                                     key={cell.id}
@@ -503,11 +510,11 @@ export default function OrdersPage(): React.ReactElement {
                     getItemValue={(item) => String(item.id)}
                     onMove={handleMove}
                 >
-                    <KanbanBoard className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                    <KanbanBoard className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-start overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                         {KANBAN_COLUMNS.map((col) => {
                             const config = STATUS_COLORS[col.id];
                             return (
-                                <KanbanColumn key={col.id} value={col.id} className="min-w-0">
+                                <KanbanColumn key={col.id} value={col.id} className="flex-shrink-0 w-[280px] md:w-auto min-w-0">
                                     <div className="flex items-center justify-between mb-4 px-1">
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-2 bg-stone-50 px-2 py-1 rounded-md border border-stone-100">
@@ -553,48 +560,48 @@ function KanbanCard({ order, config }: { order: Order; config: any }) {
 
     return (
         <KanbanItemHandle>
-            <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                <div className="flex items-start justify-between mb-3">
-                    <div className="space-y-0.5">
-                        <h3 className="text-xs font-bold text-stone-900 line-clamp-1">{displayName}</h3>
-                        <p className="text-[10px] font-medium text-stone-400 uppercase tracking-tight">{order.order_number}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-stone-400 whitespace-nowrap uppercase">{orderDate}</span>
-                        <Link to="/orders/$id" params={{ id: String(order.id) }}>
-                            <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                                <HugeiconsIcon icon={ArrowRight01Icon} size={10} className="text-green-500" />
-                            </div>
-                        </Link>
-                    </div>
-                </div>
-
-                <div className="h-px bg-stone-100 border-dashed border-stone-100 w-full mb-3" />
-
-                <div className="flex items-center justify-between mt-auto">
-                    <div className="flex flex-col gap-2">
-                        <span className="text-[10px] font-bold text-stone-300 uppercase">
-                            {isDistributor ? 'Distributor' : 'Customer'}
-                        </span>
+            <Link to="/orders/$id" params={{ id: String(order.id) }} className="block group outline-none">
+                <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="space-y-0.5">
+                            <h3 className="text-xs font-bold text-stone-900 line-clamp-1 group-hover:text-stone-600 transition-colors">{displayName}</h3>
+                            <p className="text-[10px] font-medium text-stone-400 uppercase tracking-tight">{order.order_number}</p>
+                        </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-stone-100 overflow-hidden shrink-0 border border-stone-200 flex items-center justify-center">
-                                <HugeiconsIcon icon={isDistributor ? Store02Icon : UserIcon} size={10} className="text-stone-400" />
+                            <span className="text-[10px] font-medium text-stone-400 whitespace-nowrap uppercase">{orderDate}</span>
+                            <div className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0 group-hover:bg-stone-900 group-hover:text-white transition-all duration-300">
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={10} className="text-green-500 group-hover:text-white" />
                             </div>
-                            <span className="text-[10px] font-bold text-stone-400">
-                                {itemCount === '—' ? '— items' : `${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+                        </div>
+                    </div>
+
+                    <div className="h-px bg-stone-100 border-dashed border-stone-100 w-full mb-3" />
+
+                    <div className="flex items-center justify-between mt-auto">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-bold text-stone-300 uppercase">
+                                {isDistributor ? 'Distributor' : 'Customer'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-stone-100 overflow-hidden shrink-0 border border-stone-200 flex items-center justify-center">
+                                    <HugeiconsIcon icon={isDistributor ? Store02Icon : UserIcon} size={10} className="text-stone-400" />
+                                </div>
+                                <span className="text-[10px] font-bold text-stone-400">
+                                    {itemCount === '—' ? '— items' : `${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                            <span className={cn('text-[10px] font-bold px-4 py-1.5 rounded-lg border', config.bg, config.text, 'border-opacity-10')}>
+                                {config.label}
+                            </span>
+                            <span className="text-[10px] font-bold text-stone-500">
+                                ₱{parseFloat(order.total_amount).toLocaleString()}
                             </span>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                        <span className={cn('text-[10px] font-bold px-4 py-1.5 rounded-lg border', config.bg, config.text, 'border-opacity-10')}>
-                            {config.label}
-                        </span>
-                        <span className="text-[10px] font-bold text-stone-500">
-                            ₱{parseFloat(order.total_amount).toLocaleString()}
-                        </span>
-                    </div>
                 </div>
-            </div>
+            </Link>
         </KanbanItemHandle>
     );
 }
