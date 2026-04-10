@@ -30,6 +30,7 @@ import {
     TransitionRightIcon,
     ArrowDown02Icon,
     CourseIcon,
+    ShippingTruck01Icon,
 } from '@hugeicons/core-free-icons';
 import {
     Sidebar,
@@ -407,6 +408,12 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
                                 <SidebarMenuButton render={<Link to="/announcements" onClick={handleNavClick} />} isActive={isActive('/announcements')} tooltip="Announcements" className={btnCls}>
                                     <HugeiconsIcon icon={Megaphone03Icon} size={16} />
                                     <span>Announcements</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton render={<Link to="/shipping-methods" onClick={handleNavClick} />} isActive={isActive('/shipping-methods')} tooltip="Shipping Methods" className={btnCls}>
+                                    <HugeiconsIcon icon={ShippingTruck01Icon} size={16} />
+                                    <span>Shipping Methods</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>

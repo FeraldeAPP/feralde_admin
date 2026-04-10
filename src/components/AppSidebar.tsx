@@ -26,6 +26,7 @@ import {
     RankingIcon,
     Setting07Icon,
     Shield01Icon,
+    ShippingTruck01Icon,
     ShoppingBag01Icon,
     Tag01Icon,
     UserMultiple02Icon,
@@ -68,6 +69,7 @@ const navItems = [
             { title: "Training", url: "/training", icon: CourseIcon },
             { title: "Marketing", url: "/marketing", icon: ChartAverageIcon },
             { title: "Announcements", url: "/announcements", icon: Megaphone02Icon },
+            { title: "Shipping Methods", url: "/shipping-methods", icon: ShippingTruck01Icon },
         ],
     },
     {

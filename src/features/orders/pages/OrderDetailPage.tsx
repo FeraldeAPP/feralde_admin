@@ -671,10 +671,8 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                     </div>
 
                     <DialogFooter className="p-6 pt-2 flex items-center gap-3 bg-[#F9F9F9] border-t border-[#F2F2F2]">
-                        <DialogClose asChild>
-                            <Button variant="outline" className="flex-1 h-11 border-[#F2F2F2] rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[13px]">
+                        <DialogClose className="flex-1 h-11 border border-[#F2F2F2] rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[13px] focus:outline-none">
                                 Cancel
-                            </Button>
                         </DialogClose>
                         <Button
                             onClick={() => handleStatusUpdate('SHIPPED')}

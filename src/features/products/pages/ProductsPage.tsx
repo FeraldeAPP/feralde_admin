@@ -164,14 +164,14 @@ export default function ProductsPage() {
                 <p className="text-xs text-stone-400">{today}</p>
                 <div className="relative">
                     <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
-                        <DropdownMenuTrigger className="flex items-center gap-1.5 border border-stone-200 text-stone-600 shrink-0 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8">
-                            <span className="hidden sm:inline">Export As</span>
-                            <span className="hidden sm:inline w-px h-3.5 bg-stone-300" />
-                            <HugeiconsIcon
-                                icon={ArrowDown01Icon}
-                                size={14}
-                                className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`}
-                            />
+                        <DropdownMenuTrigger className="flex items-center justify-center gap-1.5 border border-stone-200 text-stone-600 shrink-0 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 focus:outline-none">
+                                <span className="hidden sm:inline">Export As</span>
+                                <span className="hidden sm:inline w-px h-3.5 bg-stone-300" />
+                                <HugeiconsIcon
+                                    icon={ArrowDown01Icon}
+                                    size={14}
+                                    className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`}
+                                />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" side="bottom" className="w-29 min-w-0">
                             <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => handleExport('pdf')}>PDF</DropdownMenuItem>
@@ -217,13 +217,13 @@ export default function ProductsPage() {
                         <HugeiconsIcon icon={Upload06Icon} size={14} className="rotate-180" />
                     </Button>
                     <DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
-                        <DropdownMenuTrigger className="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 border border-stone-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 font-medium">
-                            <span className="hidden sm:inline">{activeFilter ?? 'Filter'}</span>
-                            <HugeiconsIcon
-                                icon={FilterMailIcon}
-                                size={15}
-                                className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : 'rotate-0'}`}
-                            />
+                        <DropdownMenuTrigger className="flex items-center justify-center gap-1.5 text-xs sm:text-sm text-stone-600 border border-stone-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-stone-50 transition-colors h-8 font-medium focus:outline-none">
+                                <span className="hidden sm:inline">{activeFilter ?? 'Filter'}</span>
+                                <HugeiconsIcon
+                                    icon={FilterMailIcon}
+                                    size={15}
+                                    className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : 'rotate-0'}`}
+                                />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" side="bottom" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0">
                             <DropdownMenuItem className="text-sm text-stone-600 cursor-pointer py-1" onClick={() => setActiveFilter('By Price')}>By Price</DropdownMenuItem>

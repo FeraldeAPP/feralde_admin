@@ -19,6 +19,7 @@ import { leaderboardRoute } from '@/features/leaderboard/leaderboard.routes';
 import { trainingRoute } from '@/features/training/training.routes';
 import { marketingRoute } from '@/features/marketing/marketing.routes';
 import { announcementsRoute } from '@/features/announcements/announcements.routes';
+import { shippingMethodsRoute } from '@/features/shipping-methods/shipping-methods.routes';
 import { systemRoutes } from '@/features/system/system.routes';
 import { usersRoute } from '@/features/users/users.routes';
 import { rolesRoute } from '@/features/roles/roles.routes';
@@ -52,6 +53,7 @@ const routeTree = rootRoute.addChildren([
       trainingRoute,
       marketingRoute,
       announcementsRoute,
+      shippingMethodsRoute,
       ...systemRoutes,
       usersRoute,
       rolesRoute,
