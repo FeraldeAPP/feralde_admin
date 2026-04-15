@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { useInventory } from '../hooks/use-inventory';
 import { adjustInventory } from '../api';
 import type { InventoryItem, InventoryFilters } from '../types';
@@ -368,11 +369,7 @@ export default function InventoryPage() {
             </div>
 
             {/* Loading / Error States */}
-            {isLoading && (
-                <div className="py-16 text-center text-sm text-stone-400">
-                    Loading inventory...
-                </div>
-            )}
+            {isLoading && <TableSkeleton rows={15} columns={8} />}
 
             {isError && (
                 <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { getCommissions, approveCommission, payCommission } from '@/features/commissions/api';
 import { useAuth } from '@/hooks/use-auth';
 import type { Commission, CommissionStatus } from '@/features/commissions/types';
@@ -125,11 +126,7 @@ export default function CommissionsPage(): React.ReactElement {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center text-sm text-gray-400">
-          Loading commissions...
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={15} columns={7} />}
 
       {isError && (
         <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useExpenses, useExpenseStats } from '../hooks/use-expenses';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
@@ -262,11 +263,7 @@ export default function AccountingPage() {
 
       {/* Table */}
       <div className="relative">
-        {loadingExpenses && (
-          <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 py-20">
-            <span className="text-stone-400 text-sm">Loading expenses...</span>
-          </div>
-        )}
+        {loadingExpenses && <TableSkeleton rows={15} columns={7} />}
         <div className="overflow-x-auto border-t border-stone-100 mt-2">
           <table className="min-w-full text-sm">
             <thead>

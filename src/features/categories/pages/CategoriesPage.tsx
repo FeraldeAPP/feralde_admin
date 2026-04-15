@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../hooks/use-categories';
@@ -231,6 +232,10 @@ export default function CategoriesPage(): React.ReactElement {
         if (!window.confirm(`Delete category "${cat.name}"? This cannot be undone.`)) return;
         deleteMutation.mutate(cat.id);
     };
+
+    if (isLoading) {
+      return <TableSkeleton rows={15} columns={6} />;
+    }
 
     // Group: parents and their children
     const categories = result?.categories ?? [];

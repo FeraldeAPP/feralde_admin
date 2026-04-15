@@ -4,6 +4,7 @@ import { useProducts } from '../hooks/use-products';
 import { useAuth } from '@/hooks/use-auth';
 import ProductRow from '../components/ProductRow.new';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import {
     Add01Icon,
     Search01Icon,
@@ -87,15 +88,15 @@ export default function ProductsPage() {
                 const product = info.row.original;
                 const primaryImage = product.media?.find((m) => m.is_primary)?.url ?? product.media?.[0]?.url;
                 return (
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md overflow-hidden bg-stone-100 shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md overflow-hidden bg-stone-100 shrink-0">
                             {primaryImage ? (
                                 <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full bg-stone-200" />
                             )}
                         </div>
-                        <p className="text-sm text-stone-800 font-medium truncate max-w-[240px]">{product.name}</p>
+                        <p className="text-xs sm:text-sm text-stone-800 font-medium truncate max-w-[120px] sm:max-w-[240px]">{product.name}</p>
                     </div>
                 );
             },
@@ -259,9 +260,7 @@ export default function ProductsPage() {
 
             {/* Loading */}
             {isLoading && (
-                <div className="py-16 text-center text-sm text-stone-400">
-                    Loading products...
-                </div>
+                <TableSkeleton rowCount={8} columnCount={6} />
             )}
 
             {/* Error */}
@@ -282,11 +281,12 @@ export default function ProductsPage() {
                                         {headerGroup.headers.map(header => (
                                             <th
                                                 key={header.id}
-                                                className={`pb-3 text-left text-xs font-medium text-stone-400 pr-4 sm:pr-6 
-                                                    ${header.id === 'name' ? 'pl-4 sm:pl-0' : ''}
+                                                className={`text-left text-xs font-medium text-stone-400
+                                                    pb-3 px-2 sm:px-4 sm:pr-6
+                                                    ${header.id === 'name' ? 'pl-2 sm:pl-0' : ''}
                                                     ${header.id === 'collection' ? 'hidden sm:table-cell' : ''}
                                                     ${header.id === 'variants' ? 'hidden md:table-cell' : ''}
-                                                    ${header.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
+                                                    ${header.id === 'actions' ? 'text-right px-2 sm:pr-0' : ''}
                                                 `}
                                             >
                                                 {header.isPlaceholder
@@ -313,10 +313,11 @@ export default function ProductsPage() {
                                             {row.getVisibleCells().map(cell => (
                                                 <td
                                                     key={cell.id}
-                                                    className={`py-3.5 pr-6 
+                                                    className={`py-2.5 sm:py-3.5 px-2 sm:px-6
+                                                        ${cell.column.id === 'name' ? 'text-xs sm:text-sm font-medium' : 'text-xs sm:text-sm'}
                                                         ${cell.column.id === 'collection' ? 'hidden sm:table-cell' : ''}
                                                         ${cell.column.id === 'variants' ? 'hidden md:table-cell' : ''}
-                                                        ${cell.column.id === 'actions' ? 'text-right pr-4 sm:pr-0' : ''}
+                                                        ${cell.column.id === 'actions' ? 'text-right px-2 sm:px-0' : ''}
                                                     `}
                                                 >
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -330,41 +331,43 @@ export default function ProductsPage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                        <span className="text-xs text-stone-400">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2 pt-2 border-t border-stone-100">
+                        <span className="text-xs text-stone-400 order-2 sm:order-1">
                             Page {currentPage} of {totalPages}
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 order-1 sm:order-2">
                             <button
                                 type="button"
                                 disabled={page === 1}
                                 onClick={() => setPage((p) => p - 1)}
-                                className="w-7 h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             >
                                 <HugeiconsIcon icon={ArrowLeft01Icon} size={12} />
                             </button>
-                            {pageNumbers.map((n, i) =>
-                                n === 'ellipsis' ? (
-                                    <span key={`e-${i}`} className="w-7 h-7 flex items-center justify-center text-xs text-stone-400">…</span>
-                                ) : (
-                                    <button
-                                        key={n}
-                                        type="button"
-                                        onClick={() => setPage(n)}
-                                        className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-medium transition-colors ${currentPage === n
-                                            ? 'bg-stone-900 text-white'
-                                            : 'border border-stone-200 text-stone-500 hover:bg-stone-50'
-                                            }`}
-                                    >
-                                        {n}
-                                    </button>
-                                )
-                            )}
+                            <div className="flex items-center gap-0.5">
+                                {pageNumbers.map((n, i) =>
+                                    n === 'ellipsis' ? (
+                                        <span key={`e-${i}`} className="w-6 h-6 flex items-center justify-center text-xs text-stone-400">…</span>
+                                    ) : (
+                                        <button
+                                            key={n}
+                                            type="button"
+                                            onClick={() => setPage(n)}
+                                            className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-medium transition-colors ${currentPage === n
+                                                ? 'bg-stone-900 text-white'
+                                                : 'border border-stone-200 text-stone-500 hover:bg-stone-50'
+                                                }`}
+                                        >
+                                            {n}
+                                        </button>
+                                    )
+                                )}
+                            </div>
                             <button
                                 type="button"
                                 disabled={page === totalPages}
                                 onClick={() => setPage((p) => p + 1)}
-                                className="w-7 h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center rounded-md border border-stone-200 text-stone-400 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             >
                                 <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
                             </button>

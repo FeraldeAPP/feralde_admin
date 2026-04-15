@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import {
     Add01Icon,
     Search01Icon,
@@ -262,6 +263,10 @@ export default function AnnouncementsPage() {
     const result = data?.success ? data.data : null;
     const totalPages = result?.pagination.last_page ?? 1;
     const currentPage = result?.pagination.current_page ?? page;
+
+    if (isLoading) {
+      return <TableSkeleton rows={15} columns={6} />;
+    }
 
     const pageNumbers: (number | 'ellipsis')[] = [];
     if (totalPages <= 5) {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUsers, useUserMutations } from '../hooks/use-users';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { getRoles } from '@/features/roles/api';
 import type { AdminUser, CreateUserPayload, UpdateUserPayload, UserFilters } from '../types';
 import type { RoleWithPermissions } from '@/features/roles/types';
@@ -318,11 +319,7 @@ export default function UsersPage() {
       </div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="py-16 text-center text-sm text-stone-400">
-          Loading users...
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={15} columns={7} />}
 
       {/* Error */}
       {isError && (

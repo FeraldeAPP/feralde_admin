@@ -1,4 +1,5 @@
 import { createPromoCode, deletePromoCode, getPromoCodes, updatePromoCode } from '@/features/promo-codes/api';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import type { PromoCode, PromoCodeType } from '@/features/promo-codes/types';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -656,9 +657,7 @@ export default function PromoCodesPage(): React.ReactElement {
 
         {/* Table/List Area */}
         {isLoading ? (
-          <div className="bg-white rounded-2xl  px-4 py-24 text-center text-sm text-gray-400  animate-pulse">
-            Loading promotions...
-          </div>
+          <TableSkeleton rows={15} columns={6} />
         ) : isError ? (
           <div role="alert" className="rounded-2xl bg-red-50 border border-red-100 px-6 py-4 text-sm text-red-700 ">
             Failed to load promo codes. Please try again.

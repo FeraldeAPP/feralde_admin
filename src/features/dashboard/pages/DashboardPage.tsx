@@ -1,7 +1,7 @@
 
 import {
     Search01Icon,
-    FilterIcon,
+    FilterMailIcon,
     ArrowDown01Icon,
     ArrowUp01Icon,
     ArrowLeft01Icon,
@@ -21,6 +21,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useState } from "react"
 import {
     AreaChart,
     Area,
@@ -114,6 +121,22 @@ const latestOrders = [
 ]
 
 export default function DistributorDashboard() {
+    const [exportOpenDesktop, setExportOpenDesktop] = useState(false);
+    const [exportOpenMobile, setExportOpenMobile] = useState(false);
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+    const handleExport = (format: string) => {
+        console.log(`Exporting dashboard as ${format}`);
+        setExportOpenDesktop(false);
+        setExportOpenMobile(false);
+    };
+
+    const handleFilter = (filterType: string) => {
+        setActiveFilter(filterType);
+        setFilterOpen(false);
+    };
+
     return (
         <div className="flex flex-col gap-6 p-2 font-[var(--font-bricolage)] text-[#393939]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -121,14 +144,27 @@ export default function DistributorDashboard() {
                     <p className="text-[12px] text-[#A5A5A5] font-medium leading-tight">Friday, 16 January 2026</p>
                     <h1 className="text-2xl font-bold tracking-tight text-[#393939]">Dashboard Overview</h1>
                 </div>
-                <div className="flex items-center shrink-0">
-                    <Button variant="outline" className="h-10 px-0 flex items-center border-[#F2F2F2] rounded-xl overflow-hidden shadow-none bg-white hover:bg-white w-full sm:w-auto">
-                        <span className="px-5 text-[13px] font-bold text-[#393939]">Export As</span>
-                        <div className="w-[1px] h-full bg-[#F2F2F2]" />
-                        <div className="px-3.5 flex items-center justify-center">
-                            <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="text-[#393939]" />
-                        </div>
-                    </Button>
+                <div className="hidden sm:flex items-center shrink-0">
+                    <DropdownMenu open={exportOpenDesktop} onOpenChange={setExportOpenDesktop}>
+                        <DropdownMenuTrigger className="h-10 px-0 flex items-center border border-[#F2F2F2] rounded-xl overflow-hidden shadow-none bg-white hover:bg-white w-auto text-[13px] font-bold text-[#393939]">
+                            <span className="px-5">Export As</span>
+                            <div className="w-px h-full bg-[#F2F2F2]" />
+                            <div className="px-3.5 flex items-center justify-center">
+                                <HugeiconsIcon icon={ArrowDown01Icon} size={16} className={`transition-transform duration-200 ${exportOpenDesktop ? 'rotate-180' : ''}`} />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="bottom" className="min-w-40">
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('pdf')}>
+                                PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('excel')}>
+                                Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('csv')}>
+                                CSV
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
@@ -143,15 +179,47 @@ export default function DistributorDashboard() {
                         <HugeiconsIcon icon={Search01Icon} size={18} className="text-[#A5A5A5]" />
                     </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <span className="text-[11px] text-[#A5A5A5] font-medium order-2 sm:order-1">Last Updated: Jan 16, 2025 - 5:03pm</span>
-                    <Button variant="outline" className="h-10 px-0 flex items-center border-[#F2F2F2] rounded-xl overflow-hidden shadow-none bg-white hover:bg-white order-1 sm:order-2 w-full sm:w-auto">
-                        <span className="px-4 text-[13px] font-bold text-[#393939]">Filter</span>
-                        <div className="w-[1px] h-full bg-[#F2F2F2]" />
-                        <div className="px-3 flex items-center justify-center">
-                            <HugeiconsIcon icon={FilterIcon} size={16} className="text-[#393939]" />
-                        </div>
-                    </Button>
+                <div className="flex flex-row items-center gap-2 md:gap-6">
+                    <span className="hidden md:inline text-[11px] text-[#A5A5A5] font-medium">Last Updated: Jan 16, 2025 - 5:03pm</span>
+                    <DropdownMenu open={exportOpenMobile} onOpenChange={setExportOpenMobile}>
+                        <DropdownMenuTrigger className="h-10 px-0 flex items-center md:hidden border border-[#F2F2F2] rounded-xl overflow-hidden shadow-none bg-white hover:bg-white w-auto text-[13px] font-bold text-[#393939]">
+                            <span className="px-5">Export As</span>
+                            <div className="w-px h-full bg-[#F2F2F2]" />
+                            <div className="px-3.5 flex items-center justify-center">
+                                <HugeiconsIcon icon={ArrowDown01Icon} size={16} className={`transition-transform duration-200 ${exportOpenMobile ? 'rotate-180' : ''}`} />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="bottom" className="min-w-40">
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('pdf')}>
+                                PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('excel')}>
+                                Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleExport('csv')}>
+                                CSV
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
+                        <DropdownMenuTrigger className="h-10 px-0 flex items-center gap-2 border border-[#F2F2F2] rounded-xl overflow-hidden shadow-none bg-white hover:bg-white w-auto text-[13px] font-bold text-[#393939]">
+                            <span className="px-4">{activeFilter ?? 'Filter'}</span>
+                            <div className="px-3 flex items-center justify-center">
+                                <HugeiconsIcon icon={FilterMailIcon} size={16} className={`transition-transform duration-200 ${filterOpen ? 'rotate-180' : ''}`} />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="bottom" className="min-w-40">
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleFilter('By Date')}>
+                                By Date
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleFilter('By Status')}>
+                                By Status
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-sm text-[#393939] cursor-pointer py-2" onClick={() => handleFilter('By Revenue')}>
+                                By Revenue
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
@@ -185,7 +253,7 @@ export default function DistributorDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <Card className="lg:col-span-2 border-[#F2F2F2] shadow-none rounded-2xl">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 px-6 pt-6">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 px-6 pt-6">
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
                                 <HugeiconsIcon icon={Wallet02Icon} size={20} className="text-[#393939]" />
@@ -199,7 +267,7 @@ export default function DistributorDashboard() {
                             <span className="text-[20px] font-bold text-[#393939]">₱78,200.00</span>
                             <div className="flex items-center gap-1.5 px-3 py-1.5 border border-[#F2F2F2] rounded-lg">
                                 <span className="text-[12px] font-bold text-[#393939]">This Year</span>
-                                <HugeiconsIcon icon={FilterIcon} size={14} className="text-[#393939]" />
+                                <HugeiconsIcon icon={FilterMailIcon} size={14} className="text-[#393939]" />
                             </div>
                         </div>
                     </CardHeader>
@@ -546,7 +614,65 @@ export default function DistributorDashboard() {
                 {/* Top Distributors Table */}
                 <div className="space-y-4">
                     <h2 className="text-xl font-bold px-2">Top Distributors</h2>
-                    <div className="overflow-x-auto">
+                    
+                    {/* Mobile View: Cards */}
+                    <div className="grid grid-cols-1 gap-4 xl:hidden">
+                        {topDistributors.map((row) => (
+                            <Card key={row.id} className="border-[#F2F2F2] shadow-none rounded-2xl p-4">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div>
+                                        <span className="text-[13px] font-bold text-[#393939]">{row.id}</span>
+                                        <div className="text-[11px] text-[#A5A5A5] font-medium mt-1">{row.date}</div>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded-lg text-[11px] font-bold ${row.status === 'Delivered' ? 'bg-[#ECFDF5] text-[#10B981]' :
+                                            row.status === 'Shipped' ? 'bg-[#EFF6FF] text-[#3B82F6]' :
+                                                'bg-[#FEF2F2] text-[#EF4444]'
+                                        }`}>
+                                        {row.status}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`h-8 w-8 rounded-full ${row.shopColor} flex items-center justify-center shrink-0`}>
+                                            {row.name.includes("Scenta") && (
+                                                <div className="h-3 w-3 bg-white/20 rotate-45" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <span className="text-[13px] font-bold text-[#393939] block leading-tight">{row.name}</span>
+                                            <span className="text-[11px] text-[#A5A5A5] font-medium">{row.shop}</span>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-[#A5A5A5]">
+                                        <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
+                                    </Button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-y-3 bg-[#F9F9F9] rounded-xl p-3">
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block mb-0.5">Amount</span>
+                                        <span className="text-[13px] font-bold text-[#393939] block mt-0.5">{row.amount}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Items</span>
+                                        <span className="text-[12px] font-semibold text-[#393939] block mt-0.5">{row.items}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Method</span>
+                                        <span className="text-[12px] font-semibold text-[#393939] block mt-0.5">{row.method}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Commission</span>
+                                        <span className="text-[12px] font-semibold text-[#393939] block mt-0.5">{row.commission}</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Desktop View: Table */}
+                    <div className="hidden xl:block overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow className="border-none hover:bg-transparent">
@@ -605,18 +731,20 @@ export default function DistributorDashboard() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between pt-4 px-2">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 px-2">
                         <span className="text-[12px] text-[#A5A5A5] font-medium">Page 1 of 4</span>
-                        <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none">
+                        <div className="flex items-center justify-between w-full sm:w-auto sm:justify-start gap-1">
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none shrink-0">
                                 <HugeiconsIcon icon={ArrowLeft01Icon} size={14} className="text-[#393939]" />
                             </Button>
-                            <Button className="h-8 w-8 rounded-lg bg-[#393939] text-white shadow-none text-[12px] font-bold">1</Button>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">2</Button>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">3</Button>
-                            <span className="px-1 text-[#A5A5A5]">...</span>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">4</Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none">
+                            <div className="flex items-center gap-1 justify-center relative overflow-hidden">
+                                <Button className="h-8 w-8 rounded-lg bg-[#393939] text-white shadow-none text-[12px] font-bold">1</Button>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">2</Button>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">3</Button>
+                                <span className="px-1 text-[#A5A5A5] hidden sm:block">...</span>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold hidden sm:flex">4</Button>
+                            </div>
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none shrink-0">
                                 <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="text-[#393939]" />
                             </Button>
                         </div>
@@ -626,7 +754,54 @@ export default function DistributorDashboard() {
                 {/* Latest Orders Table */}
                 <div className="space-y-4 pt-4">
                     <h2 className="text-xl font-bold px-2">Latest Orders</h2>
-                    <div className="overflow-x-auto">
+
+                    {/* Mobile View: Cards */}
+                    <div className="grid grid-cols-1 gap-4 xl:hidden">
+                        {latestOrders.map((order) => (
+                            <Card key={order.id} className="border-[#F2F2F2] shadow-none rounded-2xl p-4">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div>
+                                        <span className="text-[13px] font-bold text-[#393939]">{order.id}</span>
+                                        <div className="text-[11px] text-[#A5A5A5] font-medium mt-1">{order.date}</div>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded-lg text-[11px] font-bold ${order.status === 'Delivered' ? 'bg-[#ECFDF5] text-[#10B981]' :
+                                            order.status === 'Shipped' ? 'bg-[#EFF6FF] text-[#3B82F6]' :
+                                                'bg-[#FFF7ED] text-[#F97316]'
+                                        }`}>
+                                        {order.status}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="bg-[#F2F2F2] text-[10px] font-bold">{order.avatar}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <span className="text-[13px] font-bold text-[#393939] block leading-tight">{order.customer}</span>
+                                        <span className="text-[11px] text-[#A5A5A5] font-medium">{order.product}</span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-y-3 bg-[#F9F9F9] rounded-xl p-3">
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Total</span>
+                                        <span className="text-[13px] font-bold text-[#393939] block mt-0.5">₱{order.total}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Qty</span>
+                                        <span className="text-[12px] font-semibold text-[#393939] block mt-0.5">{order.qty}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-[#A5A5A5] block">Method</span>
+                                        <span className="text-[12px] font-semibold text-[#393939] block mt-0.5">{order.method}</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Desktop View: Table */}
+                    <div className="hidden xl:block overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow className="border-none hover:bg-transparent">
@@ -686,18 +861,20 @@ export default function DistributorDashboard() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between pt-4 px-2">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 px-2">
                         <span className="text-[12px] text-[#A5A5A5] font-medium">Page 1 of 4</span>
-                        <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none">
+                        <div className="flex items-center justify-between w-full sm:w-auto sm:justify-start gap-1">
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none shrink-0">
                                 <HugeiconsIcon icon={ArrowLeft01Icon} size={14} className="text-[#393939]" />
                             </Button>
-                            <Button className="h-8 w-8 rounded-lg bg-[#393939] text-white shadow-none text-[12px] font-bold">1</Button>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">2</Button>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">3</Button>
-                            <span className="px-1 text-[#A5A5A5]">...</span>
-                            <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">4</Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none">
+                            <div className="flex items-center gap-1 justify-center relative overflow-hidden">
+                                <Button className="h-8 w-8 rounded-lg bg-[#393939] text-white shadow-none text-[12px] font-bold">1</Button>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">2</Button>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold">3</Button>
+                                <span className="px-1 text-[#A5A5A5] hidden sm:block">...</span>
+                                <Button variant="ghost" className="h-8 w-8 rounded-lg text-[#393939] text-[12px] font-bold hidden sm:flex">4</Button>
+                            </div>
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-[#F2F2F2] shadow-none shrink-0">
                                 <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="text-[#393939]" />
                             </Button>
                         </div>

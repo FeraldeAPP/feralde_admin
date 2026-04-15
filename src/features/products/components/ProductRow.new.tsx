@@ -2,8 +2,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@tanstack/react-router';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { MoreHorizontalIcon } from '@hugeicons/core-free-icons';
-import { useState, useRef, useEffect } from 'react';
 import type { Product } from '../types';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Props {
     product: Product;
@@ -14,8 +19,6 @@ export default function ProductRow({ product, isOnlyActions }: Props) {
     const { hasPermission } = useAuth();
     const canUpdate = hasPermission('products.update');
     const canDelete = hasPermission('products.delete');
-    const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
 
     const primaryImage = product.media?.find((m) => m.is_primary)?.url ?? product.media?.[0]?.url;
     const activeVariants = product.variants?.filter((v: any) => v.is_active) ?? [];
@@ -27,58 +30,37 @@ export default function ProductRow({ product, isOnlyActions }: Props) {
     }))
     : null;
 
-     // Close menu on outside click
-    useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setMenuOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     const actionMenu = (
-        <div className="relative inline-block" ref={menuRef}>
-            <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-            >
-                <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
-            </button>
-            {menuOpen && (
-                <div className="absolute right-0 top-8 z-20 w-36 bg-white border border-stone-200 rounded-lg shadow-md py-1">
+        <DropdownMenu>
+            <DropdownMenuTrigger className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors outline-none">
+                <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem className="cursor-pointer">
                     <Link
                         to="/products/$id"
                         params={{ id: String(product.id) }}
-                        className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                        onClick={() => setMenuOpen(false)}
                     >
                         View
                     </Link>
-                    {canUpdate && (
+                </DropdownMenuItem>
+                {canUpdate && (
+                    <DropdownMenuItem className="cursor-pointer">
                         <Link
                             to="/products/$id/edit"
                             params={{ id: String(product.id) }}
-                            className="block px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
-                            onClick={() => setMenuOpen(false)}
                         >
                             Edit
                         </Link>
-                    )}
-                    {canDelete && (
-                        <button
-                            type="button"
-                            className="block w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            Delete
-                        </button>
-                    )}
-                </div>
-            )}
-        </div>
+                    </DropdownMenuItem>
+                )}
+                {canDelete && (
+                    <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 font-medium">
+                        Delete
+                    </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 
     if (isOnlyActions) {
@@ -98,7 +80,7 @@ export default function ProductRow({ product, isOnlyActions }: Props) {
                             <div className="w-full h-full bg-stone-200" />
                         )}
                     </div>
-                    <p className="text-sm text-stone-800 font-medium truncate max-w-[240px]">{product.name}</p>
+                    <p className="text-sm text-stone-800 font-medium truncate max-w-60">{product.name}</p>
                 </div>
             </td>
 

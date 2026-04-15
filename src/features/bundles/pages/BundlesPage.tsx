@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBundles, useCreateBundle, useUpdateBundle, useDeleteBundle } from '../hooks/use-bundles';
@@ -248,6 +249,10 @@ export default function BundlesPage(): React.ReactElement {
     const result = data?.success ? data.data : null;
     const totalPages = result?.pagination.last_page ?? 1;
     const currentPage = result?.pagination.current_page ?? page;
+
+    if (isLoading) {
+      return <TableSkeleton rows={15} columns={6} />;
+    }
 
     const deleteMutation = useDeleteBundle();
 

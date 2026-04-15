@@ -8,6 +8,7 @@ import {
     unassignDistributorCity,
     unsuspendDistributor,
 } from '@/features/distributors/api';
+import { DetailPageSkeleton } from '@/components/loading/SkeletonLoaders';
 import type { Distributor, DistributorRank, NetworkReseller } from '@/features/distributors/types';
 import {
     ArrowLeft01Icon,
@@ -127,13 +128,7 @@ export default function DistributorDetailPage(): React.ReactElement {
   const status = dist ? getDistributorStatus(dist) : null;
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center text-sm text-gray-400">
-          Loading distributor...
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (isError || !dist) {

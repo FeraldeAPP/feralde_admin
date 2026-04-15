@@ -28,9 +28,9 @@ import {
     Moon02Icon,
     MoreHorizontalIcon,
     TransitionRightIcon,
-    ArrowDown02Icon,
     CourseIcon,
     ShippingTruck01Icon,
+    PlusSignIcon,
 } from '@hugeicons/core-free-icons';
 import {
     Sidebar,
@@ -118,42 +118,42 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-stone-100 bg-white px-3 sticky top-0 z-10">
 
             {/* Left — toggle + nav arrows + breadcrumb */}
-            <div className="flex items-center gap-1">
-                <SidebarTrigger className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md p-1.5 transition-colors border border-stone-200" />
+            <div className="flex items-center gap-1 min-w-0">
+                <SidebarTrigger className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md p-1.5 transition-colors border border-stone-200 shrink-0" />
 
                 {/* Back / Forward */}
                 <button
                     type="button"
                     onClick={() => window.history.back()}
-                    className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200"
+                    className="hidden sm:block p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200 shrink-0"
                 >
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
                 </button>
                 <button
                     type="button"
                     onClick={() => window.history.forward()}
-                    className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200"
+                    className="hidden sm:block p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200 shrink-0"
                 >
                     <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
                 </button>
 
                 {/* Breadcrumb */}
-                <div className="flex items-center gap-1.5 text-xs text-stone-400">
-                    <Link to="/" className="p-1.5 rounded-md hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200">
+                <div className="flex items-center gap-1.5 text-xs text-stone-400 min-w-0">
+                    <Link to="/" className="hidden sm:block p-1.5 rounded-md hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200 shrink-0">
                         <HugeiconsIcon icon={Home11Icon} size={14} />
                     </Link>
-                    <span>/</span>
-                    <span className="text-stone-600 font-medium">Menu</span>
-                    <span>/</span>
-                    <span className="text-stone-900 font-medium">{breadcrumb}</span>
+                    <span className="hidden sm:inline shrink-0">/</span>
+                    <span className="hidden sm:inline text-stone-600 font-medium shrink-0">Menu</span>
+                    <span className="hidden sm:inline shrink-0">/</span>
+                    <span className="text-stone-900 font-medium truncate shrink-1">{breadcrumb}</span>
                 </div>
             </div>
 
             {/* Right — avatars + lang + icons + quick menu */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
 
                 {/* Stacked avatars */}
-                <div className="flex items-center -space-x-2 mr-1">
+                <div className="hidden sm:flex items-center -space-x-2 mr-1">
                     {[0, 1, 2].map((i) => (
                         <Avatar key={i} className="h-7 w-7 border-2 border-white">
                             <AvatarFallback className="bg-stone-200 text-stone-600 text-[10px] font-bold">
@@ -163,7 +163,7 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
                     ))}
                 </div>
 
-                <Separator orientation="vertical" className="h-4 mx-1" />
+                <Separator orientation="vertical" className="hidden sm:block h-4 mx-1" />
 
                 {/* Language selector */}
                 <DropdownMenu open={langOpen} onOpenChange={setLangOpen}>
@@ -194,10 +194,10 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                <Separator orientation="vertical" className="h-4 mx-1" />
+                <Separator orientation="vertical" className="hidden sm:block h-4 mx-1" />
 
                 {/* Icon buttons */}
-                <button type="button" className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200" title="Chat">
+                <button type="button" className="hidden sm:block p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200" title="Chat">
                     <HugeiconsIcon icon={BubbleChatIcon} size={15} />
                 </button>
                 <button type="button" className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200" title="Notifications">
@@ -219,17 +219,82 @@ function TopBar({ user, isDark, onToggleTheme }: { user: any; isDark: boolean; o
                 <Separator orientation="vertical" className="h-4 mx-1" />
 
                 {/* Quick Menu button */}
-                <Button size="sm" className="bg-stone-900 hover:bg-stone-700 text-white text-xs px-3 h-8 rounded-lg flex items-center gap-1.5">
-                    Quick Menu
-                    <HugeiconsIcon icon={ArrowDown02Icon} size={12} />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="focus:outline-none flex items-center justify-center">
+                        <div className="bg-stone-900 hover:bg-stone-700 text-white text-xs px-2 sm:px-3 h-8 rounded-lg flex items-center gap-0 sm:gap-1.5 cursor-pointer">
+                            <span className="hidden sm:inline">Quick Menu</span>
+                            <div className="hidden sm:block w-px h-8 bg-white/30" />
+                            <HugeiconsIcon icon={PlusSignIcon} size={14} className="sm:hidden" />
+                            <HugeiconsIcon icon={ArrowDown01Icon} size={12} className="hidden sm:block" />
+                        </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="bottom" className="w-52 p-0">
+                        <div className="p-2">
+                            {/* Header */}
+                            <h3 className="text-sm font-bold text-stone-900 opacity-60 mb-2">Quick Menus</h3>
+
+                            {/* E-Commerce Section */}
+                            <div className="mb-3">
+                                <h4 className="text-xs font-semibold text-stone-500 mb-2">E-Commerce</h4>
+                                <div className="flex flex-col gap-1">
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Product</span>
+                                    </button>
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Order</span>
+                                    </button>
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Promotion</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Inventory Section */}
+                            <div className="mb-3">
+                                <h4 className="text-xs font-semibold text-stone-500 mb-2">Inventory</h4>
+                                <div className="flex flex-col gap-1">
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Create Replenishment</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Finance Section */}
+                            <div className="mb-3">
+                                <h4 className="text-xs font-semibold text-stone-500 mb-2">Finance</h4>
+                                <div className="flex flex-col gap-1">
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Expense</span>
+                                    </button>
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Receive</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Management Section */}
+                            <div>
+                                <h4 className="text-xs font-semibold text-stone-500 mb-2">Management</h4>
+                                <div className="flex flex-col gap-1">
+                                    <button className="flex items-center gap-2 text-xs text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 py-1.5 rounded transition-colors w-full">
+                                        <HugeiconsIcon icon={PlusSignIcon} size={10} />
+                                        <span>Add Order</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* More */}
-                <button type="button" className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200">
+                <button type="button" className="hidden sm:block p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-stone-200">
                     <HugeiconsIcon icon={MoreHorizontalIcon} size={15} />
-                </button>
-                <button type="button" className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors">
-                    <HugeiconsIcon icon={TransitionRightIcon} size={15} />
                 </button>
             </div>
         </header>
@@ -274,7 +339,7 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
     };
 
     return (
-        <Sidebar collapsible="icon" className="border-r border-stone-100 bg-white">
+        <Sidebar collapsible="icon" className="border-r border-stone-100 bg-white rounded-tr-lg rounded-br-lg md:rounded-none">
 
             {/* Brand */}
             <SidebarHeader className="px-4 py-4">
@@ -449,10 +514,10 @@ function AppSidebar({ user, signOut }: { user: any; signOut: () => void }) {
                     </SidebarGroupContent>
                 </SidebarGroup>
 
-                {/* Management */}
+                {/* Administration */}
                 <SidebarGroup>
                     <SidebarGroupLabel className="text-stone-400 text-[10px] tracking-widest uppercase">
-                        Management
+                        Administration
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>

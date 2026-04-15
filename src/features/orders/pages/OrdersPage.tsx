@@ -3,6 +3,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { Order, OrderStatus } from '@/features/orders/types';
 import { useOrders, useUpdateOrderStatus } from '@/features/orders/hooks/use-orders';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import {
     Add01Icon,
     Search01Icon,
@@ -401,7 +402,7 @@ export default function OrdersPage(): React.ReactElement {
 
             {/* Content Area */}
             {isLoading ? (
-                <div className="py-20 text-center text-stone-400 text-sm">Loading orders…</div>
+                <TableSkeleton rowCount={10} columnCount={7} />
             ) : isError ? (
                 <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                     Failed to load orders.

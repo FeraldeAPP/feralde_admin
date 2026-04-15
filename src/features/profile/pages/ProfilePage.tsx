@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { DetailPageSkeleton } from '@/components/loading/SkeletonLoaders';
 import { useAuthStore } from '@/stores/auth-store';
 import { changePassword, resendVerificationEmail, resetPasswordWithToken } from '@/features/profile/api';
 import type { ChangePasswordPayload, ResetPasswordPayload } from '@/features/profile/types';

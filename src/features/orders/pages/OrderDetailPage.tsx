@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DetailPageSkeleton } from '@/components/loading/SkeletonLoaders';
 import { getOrder, updateOrderStatus, markOrderAsPaid, getOrderHistory } from '@/features/orders/api';
 import { useAuth } from '@/hooks/use-auth';
 import type { OrderStatus } from '@/features/orders/types';
@@ -162,12 +163,7 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
     };
 
     if (isOrderLoading) {
-        return (
-            <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#393939]" />
-                <p className="mt-4 text-[13px] text-[#A5A5A5] font-medium">Loading order details...</p>
-            </div>
-        );
+        return <DetailPageSkeleton />;
     }
 
     if (isError || !order) {
@@ -190,31 +186,31 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
         : null;
 
     return (
-        <div className="flex flex-col gap-4 p-4 font-[var(--font-bricolage)] text-[#393939]  min-h-screen">
+        <div className="flex flex-col gap-3 sm:gap-4 p-3 sm:p-4 font-[var(--font-bricolage)] text-[#393939]  min-h-screen">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                    <Link to="/orders" className="flex items-center gap-2 text-[12px] font-bold text-[#A5A5A5] hover:text-[#393939] transition-colors mb-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex flex-col gap-0.5 sm:gap-1">
+                    <Link to="/orders" className="flex items-center gap-2 text-[11px] sm:text-[12px] font-bold text-[#A5A5A5] hover:text-[#393939] transition-colors mb-0.5 sm:mb-1">
                         <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
                         Back to Orders
                     </Link>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold tracking-tight text-[#393939] font-mono">{order.order_number}</h1>
-                        <Badge className={cn("rounded-lg px-2.5 py-1 text-[11px] font-bold border-none shadow-none", STATUS_CONFIG[order.status].bg, STATUS_CONFIG[order.status].color)}>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#393939] font-mono">{order.order_number}</h1>
+                        <Badge className={cn("rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-bold border-none shadow-none", STATUS_CONFIG[order.status].bg, STATUS_CONFIG[order.status].color)}>
                             {STATUS_CONFIG[order.status].label}
                         </Badge>
-                        <Badge className={cn("rounded-lg px-2.5 py-1 text-[11px] font-bold border-none shadow-none",
+                        <Badge className={cn("rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-bold border-none shadow-none",
                             order.payment_status === 'PAID' ? 'bg-[#ECFDF5] text-[#10B981]' : 'bg-[#FFFBEB] text-[#F59E0B]'
                         )}>
                             {order.payment_status}
                         </Badge>
                     </div>
-                    <p className="text-[12px] text-[#A5A5A5] font-medium">
+                    <p className="text-[10px] sm:text-[12px] text-[#A5A5A5] font-medium">
                         Placed on {new Date(order.created_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" className="h-10 border-[#F2F2F2] rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[13px]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                    <Button variant="outline" className="h-9 sm:h-10 border-[#F2F2F2] rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[12px] sm:text-[13px]">
                         Export Order
                     </Button>
                     {canUpdateStatus && nextStep && (
@@ -227,7 +223,7 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                                 }
                             }}
                             disabled={mutation.isPending}
-                            className="h-10 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-xl shadow-none font-bold text-[13px] px-6"
+                            className="h-9 sm:h-10 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-xl shadow-none font-bold text-[12px] sm:text-[13px] px-4 sm:px-6"
                         >
                             {mutation.isPending ? 'Updating...' : `Mark as ${STATUS_CONFIG[nextStep].label}`}
                         </Button>
@@ -238,7 +234,7 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
             {/* Fulfillment Stepper */}
             {currentStepIndex !== -1 && (
                 <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                    <CardContent className="p-4">
+                    <CardContent className="p-2 sm:p-4">
                         <div className="relative flex items-center justify-between w-full">
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-[#F2F2F2] -z-0" />
                             <div
@@ -253,15 +249,15 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                                 return (
                                     <div key={step} className="relative z-10 flex flex-col items-center">
                                         <div className={cn(
-                                            "h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                                            "rounded-full flex items-center justify-center border-2 transition-all duration-300 h-7 w-7 sm:h-10 sm:w-10",
                                             isCompleted ? "bg-[#393939] border-[#393939] text-white" :
-                                                isCurrent ? "bg-white border-[#393939] text-[#393939] scale-110 shadow-lg" :
+                                                isCurrent ? "bg-white border-[#393939] text-[#393939] sm:scale-110 shadow-lg" :
                                                     "bg-white border-[#F2F2F2] text-[#A5A5A5]"
                                         )}>
-                                            <HugeiconsIcon icon={config.icon} size={18} />
+                                            <HugeiconsIcon icon={config.icon} size={14} className="sm:inline" />
                                         </div>
                                         <span className={cn(
-                                            "absolute top-12 whitespace-nowrap text-[11px] font-bold",
+                                            "absolute top-8 sm:top-12 whitespace-nowrap text-[9px] sm:text-[11px] font-bold",
                                             isCurrent ? "text-[#393939]" : "text-[#A5A5A5]"
                                         )}>
                                             {config.label}
@@ -275,28 +271,28 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
             )}
 
             {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                 {/* Left Column: Items and Summary */}
-                <div className="lg:col-span-2 flex flex-col gap-4">
+                <div className="lg:col-span-2 flex flex-col gap-3 sm:gap-4">
                     {/* Order Items */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center gap-3 pb-2 px-4 ">
-                            <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                <HugeiconsIcon icon={Package01Icon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 pb-1.5 sm:pb-2 px-2.5 sm:px-4 pt-2.5 sm:pt-4">
+                            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                <HugeiconsIcon icon={Package01Icon} size={18} className="text-[#393939]" />
                             </div>
                             <div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Order Items</CardTitle>
-                                <p className="text-[12px] text-[#A5A5A5]">{order.items?.length ?? 0} items in this order</p>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Order Items</CardTitle>
+                                <p className="text-[10px] sm:text-[12px] text-[#A5A5A5]">{order.items?.length ?? 0} items</p>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className="p-0 overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="border-none hover:bg-transparent">
-                                        <TableHead className="text-[12px] font-medium text-[#A5A5A5] px-4">Product</TableHead>
-                                        <TableHead className="text-[12px] font-medium text-[#A5A5A5] text-center">Qty</TableHead>
-                                        <TableHead className="text-[12px] font-medium text-[#A5A5A5] text-right">Unit Price</TableHead>
-                                        <TableHead className="text-[12px] font-medium text-[#A5A5A5] text-right px-4">Total</TableHead>
+                                        <TableHead className="text-[10px] sm:text-[12px] font-medium text-[#A5A5A5] px-2.5 sm:px-4">Product</TableHead>
+                                        <TableHead className="text-[10px] sm:text-[12px] font-medium text-[#A5A5A5] text-center">Qty</TableHead>
+                                        <TableHead className="text-[10px] sm:text-[12px] font-medium text-[#A5A5A5] text-right">Price</TableHead>
+                                        <TableHead className="text-[10px] sm:text-[12px] font-medium text-[#A5A5A5] text-right px-2.5 sm:px-4">Total</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -308,24 +304,24 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
                                             return (
                                                 <TableRow key={item.id} className="border-t border-[#F2F2F2] hover:bg-transparent">
-                                                    <TableCell className="py-2.5 px-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-10 w-10 rounded-xl bg-gray-50 overflow-hidden flex items-center justify-center shrink-0 border border-[#F2F2F2]">
+                                                    <TableCell className="py-1.5 sm:py-2.5 px-2.5 sm:px-4">
+                                                        <div className="flex items-center gap-2 sm:gap-3">
+                                                            <div className="h-7 w-7 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gray-50 overflow-hidden flex items-center justify-center shrink-0 border border-[#F2F2F2]">
                                                                 {primaryImage ? (
                                                                     <img src={resolveMediaUrl(primaryImage)} alt={item.product_name} className="h-full w-full object-cover" />
                                                                 ) : (
-                                                                    <HugeiconsIcon icon={Package01Icon} size={16} className="text-gray-300" />
+                                                                    <HugeiconsIcon icon={Package01Icon} size={14} className="text-gray-300" />
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-[13px] font-bold text-[#393939] leading-tight">{item.product_name}</span>
-                                                                <span className="text-[11px] text-[#A5A5A5] font-medium mt-0.5">{item.variant_name || 'Standard'}</span>
+                                                                <span className="text-[11px] sm:text-[13px] font-bold text-[#393939] leading-tight">{item.product_name}</span>
+                                                                <span className="text-[9px] sm:text-[11px] text-[#A5A5A5] font-medium mt-0.5">{item.variant_name || 'Std'}</span>
                                                             </div>
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className="text-[13px] text-[#393939] text-center py-2.5">{item.quantity}</TableCell>
-                                                    <TableCell className="text-[13px] text-[#393939] text-right py-2.5">₱{formatPrice(item.unit_price || (item as any).price)}</TableCell>
-                                                    <TableCell className="text-[13px] font-bold text-[#393939] text-right py-2.5 px-4">₱{formatPrice(item.total_amount || item.total_price || item.subtotal || (item as any).total)}</TableCell>
+                                                    <TableCell className="text-[11px] sm:text-[13px] text-[#393939] text-center py-1.5 sm:py-2.5">{item.quantity}</TableCell>
+                                                    <TableCell className="text-[10px] sm:text-[13px] text-[#393939] text-right py-1.5 sm:py-2.5">₱{formatPrice(item.unit_price || (item as any).price)}</TableCell>
+                                                    <TableCell className="text-[11px] sm:text-[13px] font-bold text-[#393939] text-right py-1.5 sm:py-2.5 px-2.5 sm:px-4">₱{formatPrice(item.total_amount || item.total_price || item.subtotal || (item as any).total)}</TableCell>
                                                 </TableRow>
                                             );
                                         })
@@ -343,41 +339,41 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
                     {/* Price Summary */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center gap-3 pb-2 px-4 pt-4">
-                            <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                <HugeiconsIcon icon={Wallet02Icon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 pb-1.5 sm:pb-2 px-2.5 sm:px-4 pt-2.5 sm:pt-4">
+                            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                <HugeiconsIcon icon={Wallet02Icon} size={18} className="text-[#393939]" />
                             </div>
                             <div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Payment Summary</CardTitle>
-                                <p className="text-[12px] text-[#A5A5A5]">Detailed payment breakdown</p>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Payment Summary</CardTitle>
+                                <p className="text-[10px] sm:text-[12px] text-[#A5A5A5]">Payment breakdown</p>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-4 py-3 space-y-2">
-                            <div className="flex items-center justify-between text-[13px]">
+                        <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3 space-y-1 sm:space-y-2">
+                            <div className="flex items-center justify-between text-[11px] sm:text-[13px]">
                                 <span className="text-[#A5A5A5] font-medium">Subtotal</span>
                                 <span className="text-[#393939] font-bold">₱{formatPrice(order.subtotal)}</span>
                             </div>
-                            <div className="flex items-center justify-between text-[13px]">
-                                <span className="text-[#A5A5A5] font-medium">Shipping Fee</span>
+                            <div className="flex items-center justify-between text-[11px] sm:text-[13px]">
+                                <span className="text-[#A5A5A5] font-medium">Shipping</span>
                                 <span className="text-[#393939] font-bold">₱{formatPrice(order.shipping_fee)}</span>
                             </div>
-                            <div className="flex items-center justify-between text-[13px]">
+                            <div className="flex items-center justify-between text-[11px] sm:text-[13px]">
                                 <span className="text-[#A5A5A5] font-medium">Discount</span>
-                                <span className="text-red-500 font-bold">- ₱{formatPrice(order.discount_amount)}</span>
+                                <span className="text-red-500 font-bold">-₱{formatPrice(order.discount_amount)}</span>
                             </div>
-                            <div className="flex items-center justify-between text-[13px]">
+                            <div className="flex items-center justify-between text-[11px] sm:text-[13px]">
                                 <span className="text-[#A5A5A5] font-medium">Tax</span>
                                 <span className="text-[#393939] font-bold">₱{formatPrice(order.tax_amount)}</span>
                             </div>
                             <div className="h-px bg-[#F2F2F2] w-full my-1" />
                             <div className="flex items-center justify-between">
-                                <span className="text-[15px] font-bold text-[#393939]">Total Amount</span>
-                                <span className="text-[18px] font-bold text-[#393939]">₱{formatPrice(order.total_amount)}</span>
+                                <span className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Total</span>
+                                <span className="text-[16px] sm:text-[18px] font-bold text-[#393939]">₱{formatPrice(order.total_amount)}</span>
                             </div>
                             {order.payment_method && (
-                                <div className="mt-4 pt-4 border-t border-[#F2F2F2] flex items-center justify-between">
-                                    <span className="text-[12px] text-[#A5A5A5] font-medium uppercase tracking-wider">Payment Method</span>
-                                    <span className="text-[13px] font-bold text-[#393939]">{order.payment_method}</span>
+                                <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 border-t border-[#F2F2F2] flex items-center justify-between">
+                                    <span className="text-[10px] sm:text-[12px] text-[#A5A5A5] font-medium uppercase tracking-wider">Payment Method</span>
+                                    <span className="text-[11px] sm:text-[13px] font-bold text-[#393939]">{order.payment_method}</span>
                                 </div>
                             )}
                         </CardContent>
@@ -388,21 +384,21 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                 </div>
 
                 {/* Right Column: Customer and Details */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 sm:gap-4">
                     {/* Customer Info */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center gap-3 px-4 ">
-                            <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                <HugeiconsIcon icon={UserIcon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 px-2.5 sm:px-4 pt-2.5 sm:pt-4 pb-1.5 sm:pb-2">
+                            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                <HugeiconsIcon icon={UserIcon} size={18} className="text-[#393939]" />
                             </div>
                             <div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Customer Info</CardTitle>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Customer</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-4  space-y-3">
-                            <div className="flex items-start gap-4">
-                                <div className="h-10 w-10 rounded-full bg-[#F9F9F9] border border-[#F2F2F2] flex items-center justify-center shrink-0">
-                                    <span className="text-[13px] font-bold text-[#393939] uppercase">
+                        <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3 space-y-2 sm:space-y-3">
+                            <div className="flex items-start gap-2 sm:gap-4">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#F9F9F9] border border-[#F2F2F2] flex items-center justify-center shrink-0">
+                                    <span className="text-[11px] sm:text-[13px] font-bold text-[#393939] uppercase">
                                         {(order.distributor?.distributor_code?.[0]) ||
                                             (order.billing_address?.first_name?.[0]) ||
                                             (order.shipping_address?.first_name?.[0]) ||
@@ -411,18 +407,18 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                                     </span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[14px] font-bold text-[#393939]">
+                                    <span className="text-[12px] sm:text-[14px] font-bold text-[#393939]">
                                         {order.distributor ? order.distributor.distributor_code :
                                             order.billing_address ? `${order.billing_address.first_name} ${order.billing_address.last_name}` :
                                                 order.shipping_address ? `${order.shipping_address.first_name} ${order.shipping_address.last_name}` :
                                                     order.customer_name || order.guest_email || 'Walk-in Customer'}
                                     </span>
-                                    <span className="text-[12px] text-[#A5A5A5] font-medium">
+                                    <span className="text-[10px] sm:text-[12px] text-[#A5A5A5] font-medium">
                                         {order.distributor ? `Distributor: ${order.distributor.distributor_code}` :
                                             order.guest_email ? `Guest Order: ${order.guest_email}` : 'Regular Customer'}
                                     </span>
                                     {(order.shipping_address?.phone || (order as any).customer_phone) && (
-                                        <span className="text-[12px] text-[#393939] font-bold mt-1">
+                                        <span className="text-[10px] sm:text-[12px] text-[#393939] font-bold mt-1">
                                             {order.shipping_address?.phone || (order as any).customer_phone}
                                         </span>
                                     )}
@@ -430,15 +426,15 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                             </div>
 
                             {order.distributor && (
-                                <div className="pt-2">
-                                    <div className="bg-[#F9F9F9] rounded-xl p-3 border border-[#F2F2F2]">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-[11px] text-[#A5A5A5] font-bold uppercase">Distributor Rank</span>
-                                            <span className="text-[11px] font-bold text-[#393939]">{order.distributor.rank}</span>
+                                <div className="pt-1 sm:pt-2">
+                                    <div className="bg-[#F9F9F9] rounded-lg sm:rounded-xl p-2 sm:p-3 border border-[#F2F2F2]">
+                                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                                            <span className="text-[9px] sm:text-[11px] text-[#A5A5A5] font-bold uppercase">Rank</span>
+                                            <span className="text-[9px] sm:text-[11px] font-bold text-[#393939]">{order.distributor.rank}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[11px] text-[#A5A5A5] font-bold uppercase">City</span>
-                                            <span className="text-[11px] font-bold text-[#393939]">{order.distributor.assigned_city || '—'}</span>
+                                            <span className="text-[9px] sm:text-[11px] text-[#A5A5A5] font-bold uppercase">City</span>
+                                            <span className="text-[9px] sm:text-[11px] font-bold text-[#393939]">{order.distributor.assigned_city || '—'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -448,48 +444,48 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
                     {/* Shipping Address */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center gap-3 px-4 ">
-                            <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                <HugeiconsIcon icon={Location01Icon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 px-2.5 sm:px-4 pt-2.5 sm:pt-4 pb-1.5 sm:pb-2">
+                            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                <HugeiconsIcon icon={Location01Icon} size={18} className="text-[#393939]" />
                             </div>
                             <div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Shipping Address</CardTitle>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Shipping Address</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-4 ">
+                        <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3">
                             {order.shipping_address ? (
-                                <div className="space-y-3">
-                                    <div className="bg-[#F9F9F9] rounded-xl p-3 border border-[#F2F2F2] group relative">
-                                        <div className="space-y-1.5">
+                                <div className="space-y-2 sm:space-y-3">
+                                    <div className="bg-[#F9F9F9] rounded-lg sm:rounded-xl p-2 sm:p-3 border border-[#F2F2F2] group relative">
+                                        <div className="space-y-1 sm:space-y-1.5">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Street Address</span>
-                                                <span className="text-[13px] text-[#393939] font-medium leading-tight">
+                                                <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Street</span>
+                                                <span className="text-[11px] sm:text-[13px] text-[#393939] font-medium leading-tight">
                                                     {order.shipping_address.details}
                                                 </span>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-3 pt-1">
+                                            <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-1">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Barangay</span>
-                                                    <span className="text-[12px] text-[#393939] font-medium">
+                                                    <span className="text-[8px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Barangay</span>
+                                                    <span className="text-[10px] sm:text-[12px] text-[#393939] font-medium">
                                                         {order.shipping_address.barangay || '—'}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">City</span>
-                                                    <span className="text-[12px] text-[#393939] font-medium">
+                                                    <span className="text-[8px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">City</span>
+                                                    <span className="text-[10px] sm:text-[12px] text-[#393939] font-medium">
                                                         {order.shipping_address.city}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col pt-1">
-                                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Province</span>
-                                                    <span className="text-[12px] text-[#393939] font-medium">
+                                                    <span className="text-[8px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Province</span>
+                                                    <span className="text-[10px] sm:text-[12px] text-[#393939] font-medium">
                                                         {order.shipping_address.province}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col pt-1">
-                                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Region</span>
-                                                    <span className="text-[12px] text-[#393939] font-medium">
+                                                    <span className="text-[8px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Region</span>
+                                                    <span className="text-[10px] sm:text-[12px] text-[#393939] font-medium">
                                                         {order.shipping_address.region}
                                                     </span>
                                                 </div>
@@ -504,19 +500,19 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                                                 void navigator.clipboard.writeText(addr);
                                                 toast.success('Address copied to clipboard');
                                             }}
-                                            className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-white border border-[#F2F2F2] flex items-center justify-center text-[#A5A5A5] hover:text-[#393939] hover:border-[#393939] transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+                                            className="absolute top-2 sm:top-2 right-2 sm:right-2 h-6 sm:h-7 w-6 sm:w-7 rounded-lg bg-white border border-[#F2F2F2] flex items-center justify-center text-[#A5A5A5] hover:text-[#393939] hover:border-[#393939] transition-all opacity-0 group-hover:opacity-100 shadow-sm"
                                             title="Copy Address"
                                         >
-                                            <HugeiconsIcon icon={Copy01Icon} size={14} />
+                                            <HugeiconsIcon icon={Copy01Icon} size={12} />
                                         </button>
                                     </div>
 
 
                                 </div>
                             ) : (
-                                <div className="bg-[#F9F9F9] rounded-xl p-6 border border-[#F2F2F2] border-dashed flex flex-col items-center justify-center text-center">
-                                    <HugeiconsIcon icon={Location01Icon} size={24} className="text-[#D1D1D1] mb-2" />
-                                    <p className="text-[13px] text-[#A5A5A5] font-medium italic">No shipping address provided.</p>
+                                <div className="bg-[#F9F9F9] rounded-lg sm:rounded-xl p-3 sm:p-6 border border-[#F2F2F2] border-dashed flex flex-col items-center justify-center text-center">
+                                    <HugeiconsIcon icon={Location01Icon} size={20} className="text-[#D1D1D1] mb-1 sm:mb-2" />
+                                    <p className="text-[11px] sm:text-[13px] text-[#A5A5A5] font-medium italic">No shipping address.</p>
                                 </div>
                             )}
                         </CardContent>
@@ -525,23 +521,23 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                     {/* Fulfillment Info (Read Only) */}
                     {(order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
                         <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                            <CardHeader className="flex flex-row items-center gap-3 px-4 ">
-                                <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                    <HugeiconsIcon icon={DeliveryTruck01Icon} size={20} className="text-[#393939]" />
+                            <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 px-2.5 sm:px-4 pt-2.5 sm:pt-4 pb-1.5 sm:pb-2">
+                                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                    <HugeiconsIcon icon={DeliveryTruck01Icon} size={18} className="text-[#393939]" />
                                 </div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Fulfillment Details</CardTitle>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Fulfillment Details</CardTitle>
                             </CardHeader>
-                            <CardContent className="px-4 space-y-4 pb-4">
-                                <div className="grid grid-cols-2 gap-4">
+                            <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3 space-y-2 sm:space-y-3">
+                                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Method</span>
-                                        <span className="text-[13px] text-[#393939] font-bold mt-1">
+                                        <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Method</span>
+                                        <span className="text-[11px] sm:text-[13px] text-[#393939] font-bold mt-0.5 sm:mt-1">
                                             {order.shipping_method || '—'}
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Tracking #</span>
-                                        <span className="text-[13px] text-[#393939] font-bold mt-1">
+                                        <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Tracking #</span>
+                                        <span className="text-[11px] sm:text-[13px] text-[#393939] font-bold mt-0.5 sm:mt-1">
                                             {order.tracking_number || '—'}
                                         </span>
                                     </div>
@@ -552,45 +548,45 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
                     {/* Payment Info */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center gap-3 px-4 ">
-                            <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                <HugeiconsIcon icon={Wallet02Icon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center gap-2 sm:gap-3 px-2.5 sm:px-4 pt-2.5 sm:pt-4 pb-1.5 sm:pb-2">
+                            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                <HugeiconsIcon icon={Wallet02Icon} size={18} className="text-[#393939]" />
                             </div>
                             <div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Payment Details</CardTitle>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Payment Details</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-4 space-y-4 ">
-                            <div className="grid grid-cols-2 gap-4">
+                        <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3 space-y-2 sm:space-y-3">
+                            <div className="grid grid-cols-2 gap-2 sm:gap-4">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Status</span>
-                                    <Badge className={cn("w-fit mt-1 rounded-lg px-2 py-0.5 text-[11px] font-bold border-none shadow-none",
+                                    <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Status</span>
+                                    <Badge className={cn("w-fit mt-0.5 sm:mt-1 rounded-lg px-1.5 sm:px-2 py-0 sm:py-0.5 text-[10px] sm:text-[11px] font-bold border-none shadow-none",
                                         order.payment_status === 'PAID' ? 'bg-[#ECFDF5] text-[#10B981]' : 'bg-[#FFFBEB] text-[#F59E0B]'
                                     )}>
                                         {order.payment_status}
                                     </Badge>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Method</span>
-                                    <span className="text-[13px] text-[#393939] font-bold mt-1">
+                                    <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider">Method</span>
+                                    <span className="text-[11px] sm:text-[13px] text-[#393939] font-bold mt-0.5 sm:mt-1">
                                         {order.payment_method || '—'}
                                     </span>
                                 </div>
                             </div>
 
                             {order.payment_method === 'BANK_TRANSFER' && (
-                                <div className="pt-2 border-t border-[#F2F2F2]">
-                                    <span className="text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider block mb-2">Payment Proof</span>
+                                <div className="pt-1 sm:pt-2 border-t border-[#F2F2F2]">
+                                    <span className="text-[9px] sm:text-[10px] text-[#A5A5A5] font-bold uppercase tracking-wider block mb-1 sm:mb-2">Payment Proof</span>
                                     {order.payment_proof_url ? (
-                                        <div className="rounded-lg overflow-hidden border border-[#F2F2F2] bg-[#F9F9F9]">
+                                        <div className="rounded-lg sm:rounded-xl overflow-hidden border border-[#F2F2F2] bg-[#F9F9F9]">
                                             <a href={resolveMediaUrl(order.payment_proof_url)} target="_blank" rel="noopener noreferrer" className="block w-full">
-                                                <img src={resolveMediaUrl(order.payment_proof_url)} alt="Payment Proof" className="w-full object-contain max-h-48 hover:opacity-90 transition-opacity" />
+                                                <img src={resolveMediaUrl(order.payment_proof_url)} alt="Payment Proof" className="w-full object-contain max-h-32 sm:max-h-48 hover:opacity-90 transition-opacity" />
                                             </a>
                                         </div>
                                     ) : (
-                                        <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-3">
-                                            <p className="text-[12px] text-[#92400E] font-medium leading-relaxed italic">
-                                                No payment proof uploaded.
+                                        <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-lg sm:rounded-xl p-2 sm:p-3">
+                                            <p className="text-[10px] sm:text-[12px] text-[#92400E] font-medium leading-relaxed italic">
+                                                No proof.
                                             </p>
                                         </div>
                                     )}
@@ -601,9 +597,9 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
                                 <Button
                                     onClick={handleConfirmPayment}
                                     disabled={paymentMutation.isPending}
-                                    className="w-full h-10 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-xl shadow-none font-bold text-[13px] transition-all"
+                                    className="w-full h-9 sm:h-10 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-xl sm:rounded-2xl shadow-none font-bold text-[12px] sm:text-[13px] transition-all"
                                 >
-                                    {paymentMutation.isPending ? 'Processing...' : 'Confirm Payment'}
+                                    {paymentMutation.isPending ? 'Proc...' : 'Confirm'}
                                 </Button>
                             )}
                         </CardContent>
@@ -611,18 +607,18 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
                     {/* Internal Notes */}
                     <Card className="border-[#F2F2F2] shadow-none rounded-2xl bg-white overflow-hidden">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 ">
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9]">
-                                    <HugeiconsIcon icon={AlertCircleIcon} size={20} className="text-[#393939]" />
+                        <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 px-2.5 sm:px-4 pt-2.5 sm:pt-4">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] flex-shrink-0">
+                                    <HugeiconsIcon icon={AlertCircleIcon} size={18} className="text-[#393939]" />
                                 </div>
-                                <CardTitle className="text-[15px] font-bold text-[#393939]">Internal Notes</CardTitle>
+                                <CardTitle className="text-[13px] sm:text-[15px] font-bold text-[#393939]">Notes</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-4 py-3 pb-4">
-                            <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-3">
-                                <p className="text-[12px] text-[#92400E] font-medium leading-relaxed italic">
-                                    {order.internal_notes || 'No internal notes for this order.'}
+                        <CardContent className="px-2.5 sm:px-4 py-2 sm:py-3">
+                            <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-lg sm:rounded-xl p-2 sm:p-3">
+                                <p className="text-[10px] sm:text-[12px] text-[#92400E] font-medium leading-relaxed italic">
+                                    {order.internal_notes || 'No notes.'}
                                 </p>
                             </div>
                         </CardContent>
@@ -632,54 +628,54 @@ function OrderDetailContent({ id }: { id: string }): React.ReactElement {
 
             {/* Shipped Status Dialog */}
             <Dialog open={isShippedDialogOpen} onOpenChange={setIsShippedDialogOpen}>
-                <DialogContent className="max-w-md p-0 overflow-hidden border-none rounded-2xl shadow-2xl">
-                    <DialogHeader className="p-6 pb-2">
-                        <div className="flex items-center gap-3 mb-1">
-                            <div className="h-10 w-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600">
-                                <HugeiconsIcon icon={DeliveryTruck01Icon} size={20} />
+                <DialogContent className="max-w-sm sm:max-w-md p-0 overflow-hidden border-none rounded-xl sm:rounded-2xl shadow-2xl">
+                    <DialogHeader className="p-3 sm:p-6 pb-1 sm:pb-2">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
+                            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 flex-shrink-0">
+                                <HugeiconsIcon icon={DeliveryTruck01Icon} size={16} className="sm:size-5" />
                             </div>
-                            <div>
-                                <DialogTitle className="text-lg font-bold text-[#393939]">Fulfillment Details</DialogTitle>
-                                <DialogDescription className="text-[13px] text-[#A5A5A5]">
-                                    Required information to mark order as shipped.
+                            <div className="flex-1 min-w-0">
+                                <DialogTitle className="text-sm sm:text-lg font-bold text-[#393939]">Shipment</DialogTitle>
+                                <DialogDescription className="text-[10px] sm:text-[13px] text-[#A5A5A5]">
+                                    Enter shipping details
                                 </DialogDescription>
                             </div>
                         </div>
                     </DialogHeader>
 
-                    <div className="p-6 space-y-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="shipping_method_dialog" className="text-[11px] font-bold text-[#A5A5A5] uppercase tracking-wider">Shipping Method</Label>
+                    <div className="p-3 sm:p-6 space-y-2 sm:space-y-4">
+                        <div className="space-y-1 sm:space-y-1.5">
+                            <Label htmlFor="shipping_method_dialog" className="text-[9px] sm:text-[11px] font-bold text-[#A5A5A5] uppercase tracking-wider">Method</Label>
                             <Input
                                 id="shipping_method_dialog"
-                                placeholder="e.g. LBC, J&T Express, Grab"
+                                placeholder="LBC, J&T Express"
                                 value={shippingMethod}
                                 onChange={(e) => setShippingMethod(e.target.value)}
-                                className="h-11 border-[#F2F2F2] rounded-xl focus:ring-1 focus:ring-[#393939] focus:border-[#393939] shadow-none text-[14px]"
+                                className="h-8 sm:h-11 border-[#F2F2F2] rounded-lg sm:rounded-xl focus:ring-1 focus:ring-[#393939] focus:border-[#393939] shadow-none text-[12px] sm:text-[14px]"
                             />
                         </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="tracking_number_dialog" className="text-[11px] font-bold text-[#A5A5A5] uppercase tracking-wider">Tracking Number</Label>
+                        <div className="space-y-1 sm:space-y-1.5">
+                            <Label htmlFor="tracking_number_dialog" className="text-[9px] sm:text-[11px] font-bold text-[#A5A5A5] uppercase tracking-wider">Number</Label>
                             <Input
                                 id="tracking_number_dialog"
-                                placeholder="Enter tracking or waybill number"
+                                placeholder="Tracking number"
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value)}
-                                className="h-11 border-[#F2F2F2] rounded-xl focus:ring-1 focus:ring-[#393939] focus:border-[#393939] shadow-none text-[14px]"
+                                className="h-8 sm:h-11 border-[#F2F2F2] rounded-lg sm:rounded-xl focus:ring-1 focus:ring-[#393939] focus:border-[#393939] shadow-none text-[12px] sm:text-[14px]"
                             />
                         </div>
                     </div>
 
-                    <DialogFooter className="p-6 pt-2 flex items-center gap-3 bg-[#F9F9F9] border-t border-[#F2F2F2]">
-                        <DialogClose className="flex-1 h-11 border border-[#F2F2F2] rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[13px] focus:outline-none">
-                                Cancel
+                    <DialogFooter className="p-3 sm:p-6 sm:pt-2 flex flex-col-reverse sm:flex-row items-center gap-2 sm:gap-3 bg-[#F9F9F9] border-t border-[#F2F2F2]">
+                        <DialogClose className="flex-1 h-8 sm:h-11 border border-[#F2F2F2] rounded-lg sm:rounded-xl shadow-none bg-white hover:bg-gray-50 font-bold text-[11px] sm:text-[13px] focus:outline-none">
+                                Close
                         </DialogClose>
                         <Button
                             onClick={() => handleStatusUpdate('SHIPPED')}
                             disabled={mutation.isPending || !shippingMethod.trim() || !trackingNumber.trim()}
-                            className="flex-1 h-11 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-xl shadow-none font-bold text-[13px]"
+                            className="flex-1 h-8 sm:h-11 bg-[#393939] hover:bg-[#393939]/90 text-white rounded-lg sm:rounded-xl shadow-none font-bold text-[11px] sm:text-[13px]"
                         >
-                            {mutation.isPending ? 'Updating...' : 'Confirm Shipment'}
+                            {mutation.isPending ? 'Updating...' : 'Confirm'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

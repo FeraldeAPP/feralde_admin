@@ -1,4 +1,5 @@
     import { useState, useMemo } from 'react';
+    import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -232,11 +233,7 @@ export function ShippingMethodsPage() {
             </div>
 
             {/* Loading */}
-            {isLoading && (
-                <div className="py-16 text-center text-sm text-stone-400">
-                    Loading methods...
-                </div>
-            )}
+            {isLoading && <TableSkeleton rows={15} columns={6} />}
 
             {/* Error */}
             {error && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useDistributors } from '../hooks/use-distributors';
 import { useAuth } from '@/hooks/use-auth';
+import { TableSkeleton } from '@/components/loading/SkeletonLoaders';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
@@ -305,11 +306,7 @@ export default function DistributorsPage() {
       </div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="py-16 text-center text-sm text-stone-400">
-          Loading distributors...
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={15} columns={7} />}
 
       {/* Error */}
       {isError && (

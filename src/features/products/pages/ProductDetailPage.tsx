@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useProduct } from '../hooks/use-products';
 import { useAuth } from '@/hooks/use-auth';
 import { deleteProduct } from '../api';
+import { DetailPageSkeleton } from '@/components/loading/SkeletonLoaders';
 import { resolveMediaUrl } from '@/lib/utils';
 import { IconArrowLeft, IconPencil, IconTrash, IconBox, IconTag, IconStar, IconSparkles, IconCheck } from '@/components/Icons';
 import type { ProductVariant, ProductMedia } from '../types';
@@ -130,11 +131,7 @@ export default function ProductDetailPage(): React.ReactElement {
   }
 
   if (isLoading) {
-    return (
-      <div className="p-6 flex items-center justify-center h-48">
-        <div className="text-sm text-gray-400">Loading...</div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (isError || !data?.success) {
