@@ -51,10 +51,6 @@ export default defineConfig({
         target: 'http://127.0.0.1:8100',
         changeOrigin: true,
       },
-      '/storage/payment_proofs': {
-        target: 'http://127.0.0.1:8101',
-        changeOrigin: true,
-      },
       '/storage': {
         target: 'http://127.0.0.1:8102',
         changeOrigin: true,

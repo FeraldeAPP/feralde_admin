@@ -1,5 +1,6 @@
 import { client } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
+import type { OrderListData } from '@/features/orders/types';
 import type { Distributor, DistributorListData, NetworkResellersData } from '../types';
 
 export async function getDistributors(params?: {
@@ -16,6 +17,11 @@ export async function getDistributors(params?: {
 
 export async function getDistributor(id: number): Promise<ApiResponse<Distributor>> {
     const { data } = await client.get<ApiResponse<Distributor>>(`/distributors/${id}`);
+    return data;
+}
+
+export async function getMyDistributorProfile(): Promise<ApiResponse<Distributor>> {
+    const { data } = await client.get<ApiResponse<Distributor>>('/distributors/me');
     return data;
 }
 
@@ -54,7 +60,22 @@ export async function getNetworkResellers(id: number): Promise<ApiResponse<Netwo
     return data;
 }
 
+export async function confirmDistributorPayment(id: number): Promise<ApiResponse<Distributor>> {
+    const { data } = await client.post<ApiResponse<Distributor>>(`/distributors/${id}/confirm-payment`);
+    return data;
+}
+
 export async function getCityDistributor(city: string): Promise<ApiResponse<Distributor | null>> {
     const { data } = await client.get<ApiResponse<Distributor | null>>('/distributors/city', { params: { city } });
+    return data;
+}
+
+export async function getMyOrders(params?: {
+    page?: number;
+    per_page?: number;
+    status?: string;
+    search?: string;
+}): Promise<ApiResponse<OrderListData>> {
+    const { data } = await client.get<ApiResponse<OrderListData>>('/distributors/me/orders', { params });
     return data;
 }

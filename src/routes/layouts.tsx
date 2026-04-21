@@ -37,11 +37,21 @@ export const authGuardRoute = createRoute({
             });
         }
 
-        // Check for admin role
+        // Check for admin/distributor role
         const isAdmin = user.roles.some((r: any) => ADMIN_ROLES.includes(r.name));
-        if (!isAdmin) {
+        const isDistributor = user.account_type === 'distributor';
+
+        if (!isAdmin && !isDistributor) {
             // For now, we still allow the component to render the "Access Denied" UI
             // but we could also redirect to an unauthorized page here.
+            return;
+        }
+
+        // Restrict distributors dynamically in beforeLoad
+        if (isDistributor && !location.pathname.startsWith('/distributor') && !location.pathname.startsWith('/onboarding')) {
+            throw redirect({
+                to: '/distributor',
+            });
         }
     },
     component: AuthGuard,

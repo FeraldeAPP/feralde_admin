@@ -21,8 +21,9 @@ export default function AuthGuard() {
   }
 
   const isAdmin = user.roles.some((r) => ADMIN_ROLES.includes(r.name));
+  const isDistributor = user.account_type === 'distributor';
 
-  if (!isAdmin) {
+  if (!isAdmin && !isDistributor) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-2">

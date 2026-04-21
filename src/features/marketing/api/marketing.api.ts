@@ -7,6 +7,11 @@ export async function getMarketingAssets(params?: { page?: number; per_page?: nu
     return data;
 }
 
+export async function getMyMarketingAssets(params?: { page?: number; per_page?: number }): Promise<ApiResponse<AssetListData>> {
+    const { data } = await client.get<ApiResponse<AssetListData>>('/distributors/me/marketing-assets', { params });
+    return data;
+}
+
 export async function getMarketingAsset(id: number): Promise<ApiResponse<MarketingAsset>> {
     const { data } = await client.get<ApiResponse<MarketingAsset>>(`/marketing/assets/${id}`);
     return data;

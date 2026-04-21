@@ -7,6 +7,11 @@ export async function getTrainingModules(params?: { page?: number; per_page?: nu
     return data;
 }
 
+export async function getMyTrainingModules(params?: { page?: number; per_page?: number }): Promise<ApiResponse<TrainingListData>> {
+    const { data } = await client.get<ApiResponse<TrainingListData>>('/distributors/me/trainings', { params });
+    return data;
+}
+
 export async function getTrainingModule(id: number): Promise<ApiResponse<TrainingModule>> {
     const { data } = await client.get<ApiResponse<TrainingModule>>(`/training/${id}`);
     return data;

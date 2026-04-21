@@ -10,7 +10,7 @@ import { bundlesRoute } from '@/features/bundles/bundles.routes';
 import { promoCodesRoute } from '@/features/promo-codes/promo-codes.routes';
 import { ordersRoutes } from '@/features/orders/orders.routes';
 import { inventoryRoute } from '@/features/inventory/inventory.routes';
-import { distributorsRoutes } from '@/features/distributors/distributors.routes';
+import { distributorsRoutes, onboardingRoute } from '@/features/distributors/distributors.routes';
 import { resellersRoute, resellerRegistrationRoute } from '@/features/resellers/resellers.routes';
 import { commissionsRoute } from '@/features/commissions/commissions.routes';
 import { walletsRoute } from '@/features/wallets/wallets.routes';
@@ -36,6 +36,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   resellerRegistrationRoute,
   authGuardRoute.addChildren([
+    onboardingRoute,
     adminShellRoute.addChildren([
       dashboardRoute,
       ...productsRoutes,

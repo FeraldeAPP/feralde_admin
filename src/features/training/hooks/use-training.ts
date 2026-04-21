@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getTrainingModules,
+  getMyTrainingModules,
   createTrainingModule,
   updateTrainingModule,
   deleteTrainingModule,
@@ -12,6 +13,13 @@ export function useTrainingModules(page: number) {
   return useQuery({
     queryKey: ['training', page],
     queryFn: () => getTrainingModules({ page, per_page: 15 }),
+  });
+}
+
+export function useMyTrainingModules(page: number) {
+  return useQuery({
+    queryKey: ['training', 'me', page],
+    queryFn: () => getMyTrainingModules({ page, per_page: 15 }),
   });
 }
 

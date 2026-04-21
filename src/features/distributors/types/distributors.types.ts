@@ -21,6 +21,16 @@ export interface Distributor {
     suspended_at: string | null;
     total_network_sales: string;
     total_personal_sales: string;
+    
+    // Onboarding & Payment
+    payment_confirmed_at: string | null;
+    onboarding_completed_at: string | null;
+    payment_proof_path: string | null;
+    selected_package_id: string | null;
+    facebook_url: string | null;
+    tiktok_username: string | null;
+    onboarding_city: string | null;
+
     created_at: string;
     updated_at: string;
 }

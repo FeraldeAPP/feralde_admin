@@ -44,6 +44,9 @@ const RANK_COLORS: Record<DistributorRank, string> = {
 };
 
 function StatusBadge({ d }: { d: Distributor }): React.ReactElement {
+  console.log(d
+
+  )
   if (d.suspended_at) return <span className="text-red-500 font-medium">Suspended</span>;
   if (d.rejected_at) return <span className="text-stone-400 font-medium">Rejected</span>;
   if (d.approved_at) return <span className="text-emerald-600 font-medium">Approved</span>;

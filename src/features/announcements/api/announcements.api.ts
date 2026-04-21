@@ -7,6 +7,11 @@ export async function getAnnouncements(params?: { page?: number; per_page?: numb
     return data;
 }
 
+export async function getMyAnnouncements(params?: { page?: number; per_page?: number; search?: string }): Promise<ApiResponse<AnnouncementListData>> {
+    const { data } = await client.get<ApiResponse<AnnouncementListData>>('/distributors/me/announcements', { params });
+    return data;
+}
+
 export async function getAnnouncement(id: number): Promise<ApiResponse<Announcement>> {
     const { data } = await client.get<ApiResponse<Announcement>>(`/marketing/announcements/${id}`);
     return data;

@@ -23,14 +23,20 @@ export default function DashboardHeader() {
     const setUser = useAuthStore((s) => s.setUser)
     const pathSegments = pathname?.split('/').filter(Boolean) || []
 
+    const [isLoggingOut, setIsLoggingOut] = React.useState(false)
     const handleLogout = async () => {
+        if (isLoggingOut) return
+        
+        setIsLoggingOut(true)
         try {
             await logout()
         } catch (error) {
             console.error('Logout failed:', error)
         } finally {
             setUser(null)
-            navigate({ to: '/login' })
+            // Navigate and force a reload if necessary to ensure all state is cleared
+            navigate({ to: '/login', replace: true })
+            setIsLoggingOut(false)
         }
     }
 
@@ -133,8 +139,12 @@ export default function DashboardHeader() {
                     <button className="h-8 w-8 border border-[#F2F2F2] rounded-lg flex items-center justify-center text-[#A5A5A5] hover:bg-gray-50 transition-colors">
                         <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
                     </button>
-                    <button onClick={handleLogout} className="h-8 w-8 flex items-center justify-center text-[#A5A5A5] hover:text-[#393939] hover:bg-gray-50 rounded-lg transition-colors ml-0.5 active:scale-90">
-                        <HugeiconsIcon icon={Logout02Icon} size={16} />
+                    <button 
+                        onClick={handleLogout} 
+                        disabled={isLoggingOut}
+                        className={`h-8 w-8 flex items-center justify-center text-[#A5A5A5] hover:text-[#393939] hover:bg-gray-50 rounded-lg transition-colors ml-0.5 active:scale-90 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <HugeiconsIcon icon={Logout02Icon} size={16} className={isLoggingOut ? 'animate-pulse' : ''} />
                     </button>
                 </div>
             </div>

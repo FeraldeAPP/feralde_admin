@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getMarketingAssets,
+  getMyMarketingAssets,
   createMarketingAsset,
   updateMarketingAsset,
   deleteMarketingAsset,
@@ -12,6 +13,14 @@ export function useMarketingAssets(page: number, enabled: boolean) {
   return useQuery({
     queryKey: ['marketing-assets', page],
     queryFn: () => getMarketingAssets({ page, per_page: 15 }),
+    enabled,
+  });
+}
+
+export function useMyMarketingAssets(page: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['marketing-assets', 'me', page],
+    queryFn: () => getMyMarketingAssets({ page, per_page: 15 }),
     enabled,
   });
 }

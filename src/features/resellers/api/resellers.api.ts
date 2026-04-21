@@ -4,13 +4,19 @@ import type {
     DistributorPublicProfile,
     Reseller,
     ResellerCityStat,
+    ResellerFilters,
     ResellerListData,
     ResellerRegistrationData,
     ResellerRegistrationResult,
 } from '../types';
 
-export async function getResellers(params?: { page?: number; per_page?: number; search?: string }): Promise<ApiResponse<ResellerListData>> {
+export async function getResellers(params?: ResellerFilters): Promise<ApiResponse<ResellerListData>> {
     const { data } = await client.get<ApiResponse<ResellerListData>>('/resellers', { params });
+    return data;
+}
+
+export async function getMyResellers(params?: ResellerFilters): Promise<ApiResponse<ResellerListData>> {
+    const { data } = await client.get<ApiResponse<ResellerListData>>('/distributors/me/resellers', { params });
     return data;
 }
 

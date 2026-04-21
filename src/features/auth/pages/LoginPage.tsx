@@ -44,11 +44,14 @@ export default function LoginPage() {
       const res = await login(values);
       if (res.success) {
         setUser(res.data);
+        const accountType = res.data.account_type;
+        const defaultDest = accountType === 'distributor' ? '/distributor' : '/';
+
         // The router will handle the redirect via beforeLoad + invalidate in App.tsx
-        if (search.redirect) {
+        if (search.redirect && !search.redirect.includes('login')) {
           router.history.push(search.redirect);
         } else {
-          navigate({ to: '/' });
+          navigate({ to: defaultDest as any });
         }
       } else {
         setServerError(res.message);

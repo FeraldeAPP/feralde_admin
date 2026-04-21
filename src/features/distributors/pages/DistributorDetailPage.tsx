@@ -7,6 +7,7 @@ import {
     suspendDistributor,
     unassignDistributorCity,
     unsuspendDistributor,
+    confirmDistributorPayment,
 } from '@/features/distributors/api';
 import type { Distributor, DistributorRank, NetworkReseller } from '@/features/distributors/types';
 import {
@@ -18,6 +19,8 @@ import {
     CheckmarkCircle01Icon,
     AlertCircleIcon,
     Coins01Icon,
+    Wallet02Icon,
+    Image01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -37,6 +40,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { resolveMediaUrl } from '@/lib/utils';
 
 const RANK_COLORS: Record<DistributorRank, string> = {
   STARTER: 'bg-[#F3F4F6] text-[#374151]',
@@ -119,6 +123,11 @@ export default function DistributorDetailPage(): React.ReactElement {
 
   const unsuspend = useMutation({
     mutationFn: () => unsuspendDistributor(distributorId),
+    onSuccess: invalidate,
+  });
+
+  const confirmPayment = useMutation({
+    mutationFn: () => confirmDistributorPayment(distributorId),
     onSuccess: invalidate,
   });
 
@@ -326,6 +335,59 @@ export default function DistributorDetailPage(): React.ReactElement {
               )}
             </CardContent>
           </Card>
+
+          {/* Payment Verification */}
+          {dist.payment_proof_path && (
+            <Card className="border-[#F2F2F2] shadow-none rounded-2xl overflow-hidden bg-white">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2 px-5 pt-5">
+                <div className="h-8 w-8 rounded-lg border border-[#F2F2F2] flex items-center justify-center bg-[#F9F9F9] shrink-0">
+                  <HugeiconsIcon icon={Wallet02Icon} size={16} className="text-[#393939]" />
+                </div>
+                <div>
+                  <CardTitle className="text-[15px] font-bold text-[#393939]">Payment Verification</CardTitle>
+                  <p className="text-[11px] text-[#A5A5A5] font-medium leading-tight mt-0.5">
+                    {dist.payment_confirmed_at 
+                      ? `Verified on ${new Date(dist.payment_confirmed_at).toLocaleDateString()}` 
+                      : 'Review the payment proof below.'}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 pt-2">
+                <div className="space-y-4">
+                  <div 
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden border border-[#F2F2F2] bg-[#F9F9F9] group cursor-zoom-in"
+                    onClick={() => window.open(resolveMediaUrl(dist.payment_proof_path!), '_blank')}
+                  >
+                    <img 
+                      src={resolveMediaUrl(dist.payment_proof_path)} 
+                      alt="Payment Proof" 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                      <HugeiconsIcon icon={Image01Icon} size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+
+                  {!dist.payment_confirmed_at && (
+                    <Button 
+                      onClick={() => confirmPayment.mutate()}
+                      disabled={confirmPayment.isPending}
+                      className="w-full rounded-xl bg-[#393939] text-white hover:bg-[#393939]/90 h-10 text-[13px] font-bold shadow-none"
+                    >
+                      {confirmPayment.isPending ? 'Confirming…' : 'Confirm Payment'}
+                    </Button>
+                  )}
+                  
+                  {dist.payment_confirmed_at && (
+                    <div className="flex items-center gap-2 justify-center py-1 text-[12px] font-bold text-[#10B981]">
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                      Payment Verified
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Registration Link */}
           {dist.referral_code && (

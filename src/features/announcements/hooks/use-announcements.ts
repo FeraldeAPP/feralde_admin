@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getAnnouncements,
+  getMyAnnouncements,
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
@@ -12,6 +13,14 @@ export function useAnnouncements(params?: { page?: number; per_page?: number; se
   return useQuery({
     queryKey: ['announcements', params],
     queryFn: () => getAnnouncements(params),
+    enabled,
+  });
+}
+
+export function useMyAnnouncements(params?: { page?: number; per_page?: number; search?: string }, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['announcements', 'me', params],
+    queryFn: () => getMyAnnouncements(params),
     enabled,
   });
 }

@@ -22,6 +22,13 @@ export interface ResellerListData {
     pagination: Pagination;
 }
 
+export interface ResellerFilters {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    distributor_id?: number | null;
+}
+
 export interface DistributorPublicProfile {
     distributor_code: string;
     referral_code: string;
